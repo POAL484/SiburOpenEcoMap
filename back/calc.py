@@ -2,10 +2,10 @@
 
 class CalculationsFund:
     def __init__(self):
-        ### подгрузка из дб
+        ### подгрузка из бд
         self.last_temp = 0
         self.temperature_speed = 0
-        self.last_timestamps = {"05a3c7d1-e7d0-46c8-bc13-3a0358a0d287": "2024-07-04 00:55:34"} #представьте подгрузку из дб. Она тут есть честно честно
+        self.last_timestamps = {"05a3c7d1-e7d0-46c8-bc13-3a0358a0d287": "2024-07-04 00:55:34"} #представьте подгрузку из бд. Она тут есть честно честно
 
     def __call__(self, uid: str):
         ### представьте интересные данные
