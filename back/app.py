@@ -98,9 +98,9 @@ def get_last():
 Get many values for device - external api
 /get
 params:
-    uid - UID of device - string - required
-    timestamp_start - time filter, minimium time value - string of datatime in format "YYYY-mm-dd HH:MM:SS" - optional
-    timestamp_end - time filter, maximium time value - string of datetime in format "YYYY-mm-dd HH:MM:SS" - optional
+    uid - UID of device - string - optional
+    timestamp_start - time filter, minimium time value - string of datatime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
+    timestamp_end - time filter, maximium time value - string of datetime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
     condition - condition filter, for LiveParam - string of condition in format "<LiveParam or int>< < or > or >= or <= or = or != or == ><LiveParam or int> - optional
     filter - values to be included in the response (json format) - list[LiveParam] - optional
     limit - limit of values, to be included in one page, max 250 - int - optional - default value: 25
@@ -118,95 +118,68 @@ resp:
             pages - pages found for this request - int - required
             values - list of values - list[dict{...}] - required:
                 timestamp - timestamp of this measurement - string of timestamp in format "YYYY-mm-dd HH:MM:SS" - required
+                uid - UID of device - string - required
                 values - dict of LiveParam measurements - dict{LiveParam: value} - required
 """
-@app.route("/get")
-def get():
-    if not u.need_fields(request.args, "uid"): return u.return_error("Not enough parameters")
-    if not app.db.devices.find_one({"uid": request.args["uid"]}): return u.return_error("Device was not found by this uid")
+@app.route("/get/")
+def get__():
+    #if not u.need_fields(request.args, "uid"): return u.return_error("Not enough parameters")
+    #if not app.db.devices.find_one({"uid": request.args["uid"]}): return u.return_error("Device was not found by this uid")
     if "filter" in request.args.keys():
         try: json.loads(request.args["filter"])
         except Exception: return u.return_error("Filter is not json format")
     if "timestamp_start" in request.args.keys():
         try: dt.datetime.strptime(request.args["timestamp_start"], "%Y-%m-%d %H:%M:%S")
-        except Exception: return u.return_error("Timestamp (start) in wrong format")
+        except Exception:
+            try: float(request.args["timestamp_start"])
+            except Exception: return u.return_error("Timestamp (start) in wrong format")
     if "timestamp_end" in request.args.keys():
         try: dt.datetime.strptime(request.args["timestamp_end"], "%Y-%m-%d %H:%M:%S")
-        except Exception: return u.return_error("Timestamp (end) in wrong format")
+        except Exception:
+            try: float(request.args["timestamp_end"])
+            except Exception: return u.return_error("Timestamp (end) in wrong format")
+    condition = None
     if "condition" in request.args.keys():
-        cond = request.args['condition']
-        if ">" in cond:
-            if not cond.split(">") == 2: return u.return_error("Condition parse failed (Not two operands)")
-            try: int(cond.split(">")[0])
-            except Exception:
-                #проверка на фильтр
-                pass
-            try: int(cond.split(">")[1])
-            except Exception:
-                #проверка на фильтр
-                pass
-        elif "<" in cond:
-            if not cond.split("<") == 2: return u.return_error("Condition parse failed (Not two operands)")
-            try: int(cond.split("<")[0])
-            except Exception:
-                #проверка на фильтр
-                pass
-            try: int(cond.split("<")[1])
-            except Exception:
-                #проверка на фильтр
-                pass
-        elif ">=" in cond:
-            if not cond.split(">=") == 2: return u.return_error("Condition parse failed (Not two operands)")
-            try: int(cond.split(">=")[0])
-            except Exception:
-                #проверка на фильтр
-                pass
-            try: int(cond.split(">=")[1])
-            except Exception:
-                #проверка на фильтр
-                pass
-        elif "<=" in cond:
-            if not cond.split("<=") == 2: return u.return_error("Condition parse failed (Not two operands)")
-            try: int(cond.split("<=")[0])
-            except Exception:
-                #проверка на фильтр
-                pass
-            try: int(cond.split("<=")[1])
-            except Exception:
-                #проверка на фильтр
-                pass
-        elif "==" in cond:
-            if not cond.split("==") == 2: return u.return_error("Condition parse failed (Not two operands)")
-            try: int(cond.split("==")[0])
-            except Exception:
-                #проверка на фильтр
-                pass
-            try: int(cond.split("==")[1])
-            except Exception:
-                #проверка на фильтр
-                pass
-        elif "!=" in cond:
-            if not cond.split("!=") == 2: return u.return_error("Condition parse failed (Not two operands)")
-            try: int(cond.split("!=")[0])
-            except Exception:
-                #проверка на фильтр
-                pass
-            try: int(cond.split("!=")[1])
-            except Exception:
-                #проверка на фильтр
-                pass
-        elif "=" in cond:
-            if not cond.split("=") == 2: return u.return_error("Condition parse failed (Not two operands)")
-            try: int(cond.split("=")[0])
-            except Exception:
-                #проверка на фильтр
-                pass
-            try: int(cond.split("=")[1])
-            except Exception:
-                #проверка на фильтр
-                pass
-        else: u.return_error("Condition parse failed (No sign detected)")
-            
-            
+        conditions = u.parse_condition(request.args['condition'])
+        if not conditions[0]: return conditions[1]
+        condition = conditions[1]
+    if "limit" in request.args.keys():
+        try: int(request.args['limit'])
+        except Exception: return u.return_error("Argument \"limit\" is not int")
+    if "page" in request.args.keys():
+        try: int(request.args['page'])
+        except Exception: return u.return_error("Argument \"page\" is not int")
+    #проверка фильтров
+    tms_s = u.get_timestamp(request.args["timestamp_start"]) if "timestamp_start" in request.args.keys() else dt.datetime(1990, 7, 13, 12, 0, 0).timestamp()
+    tms_e = u.get_timestamp(request.args["timestamp_end"]) if "timestamp_end" in request.args.keys() else dt.datetime(2100, 7, 13, 12, 0, 0).timestamp()
+    filter = json.loads(request.args["filter"]) if "filter" in request.args.keys() else None
+    resp_values = []
+    for data in app.db.data.find():
+        resp_values.append({"uid": data["uid"], "timestamp": data["timestamp"], "values": u.filtered(data, filter)})
+        if "uid" in request.args.keys():
+            if data["uid"] != request.args["uid"]:
+                resp_values.pop()
+                continue
+        if condition:
+            if not u.solve_condiction(condition["sign"],
+                                      u.take_live_param_or_int(data, condition["oper1"]),
+                                      u.take_live_param_or_int(data, condition["oper2"])):
+                resp_values.pop()
+                continue
+        print(data)
+        if not ( data["timestamp"] > tms_s and data["timestamp"] < tms_e ):
+            resp_values.pop()
+            continue
+    #limit = int(request.args["limit"]) if "limit" in request.args.keys() else 25
+    #page = int(request.args["page"]) if "page" in request.args.keys() else 1
+    limit = 25
+    page = 1
+    total_pages = (len(resp_values) // limit) + 1
+    if page > total_pages: return u.return_error("Page index out of range")
+    slic = resp_values[limit*(page-1):limit*page if page != total_pages else (len(resp_values) % limit)]
+    items_on_page = limit if page != total_pages else len(resp_values) % limit
+    return u.make_response("ok", {"total_items": len(resp_values), "items_on_page": items_on_page, "page": page,
+                                  "pages": total_pages, "values": slic})
 
-app.run("localhost", 183)
+
+app.run("localhost", 1883)
