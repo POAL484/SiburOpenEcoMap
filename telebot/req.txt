@@ -1,2 +1,4 @@
 telebot
 requests
+websockets
+aiohttp
