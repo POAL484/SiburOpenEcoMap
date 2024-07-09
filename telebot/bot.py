@@ -60,5 +60,15 @@ async def c_roleremove(msg: tb.Message):
     b.update_db_roles()
     await b.send_message(msg.chat.id, f"Пользователь {args[1]} удален")
 
+@b.message_handler(commands=["start", "main"])
+async def c_start_main(msg: tb.Message):
+    if not await b.check_access(msg, 1): return
+    mk = tb.InlineKeyboardMarkup()
+    mk.add(tb.InlineKeyboardButton(
+        "Получение дрона", f"drone.{msg.from_user.id}"
+    ))
+    b.roles[str(msg.from_user.id)]["last_msg"] = await b.send_message(msg.chat.id, "оаоаоа", reply_markup=mk).id
+
+###
 
 b._run()
