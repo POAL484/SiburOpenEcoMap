@@ -234,5 +234,35 @@ def get__():
     return u.make_response("ok", {"total_items": len(resp_values), "items_on_page": items_on_page, "page": page,
                                   "pages": total_pages, "values": slic})
 
+"""
+Get list of all devices - external api
+/devices
+
+resp:
+    status - ok or err - string <ok or err> - required
+    data - dict of information - dict - required:
+        ON ERROR:
+            reason - information about error - string - required
+        ON OK:
+            values - list of dicts with information about devices - list[dict{...}] - required:
+                uid - UID of device - string - required
+                ll - latitude and longitude of device - dict{...} - required:
+                    lat - latitued - float - required
+                    lon - longitude - float - required
+
+"""
+@app.route("/devices/")
+def devices():
+    vals = []
+    for device in app.db.devices.find():
+        valdevice = {}
+        valdevice["ll"] = device["ll"]
+        valdevice["uid"] = device["uid"]
+        vals.append(valdevice)
+    return u.make_response("ok", {"values": vals})
+
+@c.fund.alertthis()
+def make_alert():
+    pass
 
 app.run("localhost", 1883)
