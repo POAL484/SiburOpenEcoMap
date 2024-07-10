@@ -69,6 +69,6 @@ async def c_start_main(msg: tb.Message):
     ))
     b.roles[str(msg.from_user.id)]["last_msg"] = await b.send_message(msg.chat.id, "оаоаоа", reply_markup=mk).id
 
-###
+
 
 b._run()
