@@ -3,13 +3,17 @@ import json
 import pymongo as mongo
 import datetime as dt
 import threading as thrd
+from websockets.client import WebSocketClientProtocol
 
 import utility as u
 import calc as c
+import wsserver as wss
 
 app = Flask(__name__)
 
 app.db = mongo.MongoClient("mongodb://localhost:27017").siburopenecomap
+
+wsserver = wss.Server(app.sb)
 
 LIVE_PARAMS = [
     "temp", "tempSpeed",
@@ -261,8 +265,44 @@ def devices():
         vals.append(valdevice)
     return u.make_response("ok", {"values": vals})
 
+
 @c.fund.alertthis()
 def make_alert():
     pass
+
+
+"""
+Wbs endpoint for probe uid from drone uid - internal websockets endpoint
+op: drone
+params (data):
+    drone_uid - uid from drone - string - required
+
+resp:
+    status - ok or err - string <ok or err> - required
+    code - code (more somewhere) - int - required
+    ON ERROR:
+        info - information about error - string+ - required --- can be a dict with "reason" key and some additional information, on codes: 26
+    ON OK:
+        info - dict of resp - dict - required:
+            probe_uid - uid of probe inside drone - string - required
+            probe_type - probe type - string of probe type - required
+"""
+async def wbs_drone(ws: WebSocketClientProtocol, data: dict):
+    if not u.need_fields(data, "drone_uid"):
+        await wss.resp(ws, False, "No fields", 24)
+        return
+    drone = app.db.drones.find_one({"uid": data["drone_uid"]})
+    if not drone:
+        await wss.resp(ws, False, "Drone doesnot found", 25)
+        return
+    if drone["taken"]:
+        await wss.resp(ws, False, {"reason": "Probe taken", "probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 26)
+        return
+    drone["taken"] = True
+    app.db.drones.find_one_and_replce({"uid": data["drone_uid"]}, drone)
+    await wss.resp(ws, True, {"probe_uid": drone["probe_uid"], "probe_type": drone["probe"]}, 10)
+wsserver.end_points["drone"] = wbs_drone
+
+
 
 app.run("localhost", 1883)
