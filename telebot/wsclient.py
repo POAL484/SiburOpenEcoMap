@@ -19,7 +19,7 @@ class WsClient:
         self.ws = None
 
         self.end_points = {
-            "drone": ""
+            #что-то
         }
         self.to_recv = False
         self.to_recv_user_id = "123321"
@@ -44,7 +44,9 @@ class WsClient:
                 if self.to_recv:
                     try: data = json.loads(msg)
                     except Exception: continue
+                    print(f"Але 1 {data}")
                     if not data["op"] in self.end_points.keys(): continue
+                    print(f"Але 2 {data}")
                     asyncio.ensure_future(self.end_points[data["op"]](data, self.to_recv_user_id), loop=self.bot.loop)
                     self.to_recv = False
                 else:

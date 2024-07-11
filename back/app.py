@@ -299,6 +299,7 @@ async def wbs_drone(ws: WebSocketClientProtocol, data: dict):
     if drone["taken"]:
         await wss.resp(ws, False, {"reason": "Probe taken", "probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 26, "drone")
         return
+    app.db.analizes.insert_one({"uid": drone["probe_uid"], "active": True, "type": drone["probe_type"]})
     drone["taken"] = True
     app.db.drones.find_one_and_replace({"uid": data["drone_uid"]}, drone)
     await wss.resp(ws, True, {"probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 10, "drone")
@@ -349,6 +350,34 @@ async def wbs_super_data(ws: WebSocketClientProtocol, data: dict):
         vals = list(coll.find(data["replace"]))
     await wss.resp(ws, True, {"values": u.no_id_list(vals)}, 10, "super_data")
 wsserver.end_points["super_data"] = wbs_super_data
+
+"""
+Wbs endpoint for write probe result - internal webscokets endpoint
+op: set_probe
+params (data):
+    probe_uid - uid of probe - string - required
+    values - dict of values to enter - dict{ProbeTypedParam: float} - required
+    
+resp:
+    status - ok or err - string <ok or err> - required
+    code - code (more somewhere) - int - required
+    ON ERROR:
+        info - information about error - string+ - required 
+    ON OK:
+        info - information that everything is right - string - required
+"""
+async def wbs_set_probe(ws: WebSocketClientProtocol, data: dict):
+    if not u.need_fields(data, "probe_uid", "values"):
+        await wss.resp(ws, False, "Not enough fields", 24, "set_probe")
+        return
+    probe = app.db.analizes.find_one({"uid": data["probe_uid"]})
+    if not probe:
+        await wss.resp(ws, False, "Probe doesnot found", 29, "set_probe")
+        return
+    if not probe["active"]:
+        await wss.resp(ws, False, "Probe inactive", 210, "set_probe")
+        return
+    app.db.probe_params.insert_one({})
 
 
 thrd.Thread(target=wsserver.run_server).start()

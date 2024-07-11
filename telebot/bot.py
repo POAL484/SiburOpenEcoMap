@@ -83,14 +83,6 @@ async def c_start_main(msg: tb.Message):
     ))
     b.roles[str(msg.from_user.id)]["last_msg"] = (await b.send_message(msg.chat.id, "оаоаоа", reply_markup=mk)).id
 
-@b.message_handler(content_types=["text"])
-async def text_type(msg: tb.Message):
-    if str(msg.from_user.id) in b.next_step_handlers.keys():
-        if b.next_step_handlers[str(msg.from_user.id)]:
-            await b.next_step_handlers[str(msg.from_user.id)][0](msg, b.next_step_handlers[str(msg.from_user.id)][1])
-            return
-    await b.send_message(msg.chat.id, "оаоао")
-
 @b.callback_query_handler(lambda call: call.data.split('.')[0]=="drone")
 async def call_drone(call: tb.CallbackQuery):
     #if not await b.check_access(call.message, 1): return
@@ -100,7 +92,7 @@ async def call_drone(call: tb.CallbackQuery):
 
 async def request_drone(msg: tb.Message, data: dict):
     print("але туда")
-    wsc.send_with_order({"drone_uid": msg.text}, msg.from_user.id)
+    wsc.send_with_order({"op": "drone", "data": {"drone_uid": msg.text}}, msg.from_user.id)
     b.next_step_handlers[str(msg.from_user.id)] = False
 
 PROBE_TYPES_INFO = {
@@ -122,6 +114,41 @@ async def resp_for_drone(resp: dict, user_id: str):
         return
     await b.send_message(user_id, f"Информация о пробе получена. Ее uid: {resp['info']['probe_uid']} . Тип: {PROBE_TYPES_INFO[resp['info']['probe_type']]}")
 wsc.end_points["drone"] = resp_for_drone
+
+@b.message_handler(commands=["super_data"])
+async def super_data(msg: tb.Message):
+    if not await b.check_access(msg, 7): return
+    try: data = json.loads(" ".join(msg.text.split()[1:]))
+    except Exception:
+        await b.send_message(msg.chat.id, "Ошибка при конвертировании аргумента")
+        return
+    wsc.send_with_order({"op": "super_data", "data": data}, msg.from_user.id)
+    await b.send_message(msg.chat.id, "Запрос отправлен")
+
+async def resp_for_super_data(resp: dict, user_id: str):
+    if resp["code"] == "24":
+        await b.send_message(user_id, "Не достаточно полей")
+        return
+    if resp["code"] == "27":
+        await b.send_message(user_id, "Коллекиция не найдена")
+        return
+    if resp["code"] == "28":
+        await b.send_message(user_id, "По фильтру не получилось значений или больше одного значения, replace не удался")
+        return
+    if not resp["code"] == "10":
+        await b.send_message(user_id, "Произошла не предвиденная ошибка")
+        #ага
+        return
+    await b.send_message(user_id, json.dumps(resp["info"]["values"], indent=4))
+wsc.end_points["super_data"] = resp_for_super_data
+
+@b.message_handler(content_types=["text"])
+async def text_type(msg: tb.Message):
+    if str(msg.from_user.id) in b.next_step_handlers.keys():
+        if b.next_step_handlers[str(msg.from_user.id)]:
+            await b.next_step_handlers[str(msg.from_user.id)][0](msg, b.next_step_handlers[str(msg.from_user.id)][1])
+            return
+    await b.send_message(msg.chat.id, "оаоао")
 
 thrd.Thread(target=wsc.run).start()
 

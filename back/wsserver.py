@@ -12,6 +12,8 @@ import json
 # 26 - probe taken
 # 27 - failed to find this collection
 # 28 - bad filter
+# 29 - probe not found
+# 210 - probe inactive
 
 TOKEN = json.load(open("wbs_token.json"))["token"]
 
