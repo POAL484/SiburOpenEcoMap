@@ -35,7 +35,7 @@ class SiburOpenEcoMap(AsyncTeleBot):
 b = SiburOpenEcoMap()
 
 wsc = wsclient.WsClient(b, "ws://10.82.91.102:3333")
-    
+
 @b.message_handler(commands=["rolechange"])
 async def c_rolechange(msg: tb.Message):
     if not await b.check_access(msg, 10): return
@@ -78,6 +78,15 @@ async def c_start_main(msg: tb.Message):
         "Получение дрона", f"drone.{msg.from_user.id}"
     ))
     b.roles[str(msg.from_user.id)]["last_msg"] = await b.send_message(msg.chat.id, "оаоаоа", reply_markup=mk).id
+
+@b.callback_query_handler(lambda call: call.data.split('.')[0]=="drone")
+async def call_drone(call: tb.CallbackQuery):
+    args = call.data.split('.')
+    
+
+async def resp_for_drone(resp: dict):
+    pass
+wsc.end_points["drone"] = resp_for_drone
 
 thrd.Thread(target=wsc.run).start()
 
