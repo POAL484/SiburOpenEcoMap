@@ -352,4 +352,4 @@ wsserver.end_points["super_data"] = wbs_super_data
 
 thrd.Thread(target=wsserver.run_server).start()
 
-app.run("localhost", 1883)
+app.run("0.0.0.0", 1883)

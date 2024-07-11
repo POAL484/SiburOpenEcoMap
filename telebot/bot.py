@@ -1,19 +1,27 @@
 from telebot.async_telebot import AsyncTeleBot
 import telebot.types as tb
 
+import wsclient
+
 import asyncio
 
 import json
+import threading as thrd
 
 class SiburOpenEcoMap(AsyncTeleBot):
     def __init__(self):
         super().__init__(json.load(open("cfg.json"))["token"], parse_mode="markdown")
         self.roles = json.load(open("roles.json"))
+        self.loop = None
 
     def update_db_roles(self): json.dump(self.roles, open("roles.json", 'w'))
 
     def _run(self):
-        asyncio.run(self.polling(True))
+        asyncio.run(self._async_run())
+
+    async def _async_run(self):
+        self.loop = asyncio.get_running_loop()
+        await self.polling(True)
 
     async def check_access(self, msg: tb.Message, access_level: float):
         if not str(msg.from_user.id) in self.roles.keys():
@@ -25,6 +33,8 @@ class SiburOpenEcoMap(AsyncTeleBot):
         return True
 
 b = SiburOpenEcoMap()
+
+wsc = wsclient.WsClient(b)
 
 @b.message_handler(commands=["rolechange"])
 async def c_rolechange(msg: tb.Message):
@@ -69,6 +79,6 @@ async def c_start_main(msg: tb.Message):
     ))
     b.roles[str(msg.from_user.id)]["last_msg"] = await b.send_message(msg.chat.id, "оаоаоа", reply_markup=mk).id
 
-
+thrd.Thread(target=wsc.run).start()
 
 b._run()
