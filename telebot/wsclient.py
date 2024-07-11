@@ -15,7 +15,9 @@ class WsClient:
         self.to_recv = [False, lambda wsc: print(end="")]
 
     async def wbs_runner(self):
+        print("oaoao")
         async for ws in wbs.connect(self.host):
+            print("Websockets connected")
             await ws.send(self.auth_token)
             msg = json.loads(await ws.recv())
             if msg["code"] == "21":

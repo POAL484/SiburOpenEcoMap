@@ -34,8 +34,8 @@ class SiburOpenEcoMap(AsyncTeleBot):
 
 b = SiburOpenEcoMap()
 
-wsc = wsclient.WsClient(b)
-
+wsc = wsclient.WsClient(b, "ws://10.82.91.102:3333")
+    
 @b.message_handler(commands=["rolechange"])
 async def c_rolechange(msg: tb.Message):
     if not await b.check_access(msg, 10): return

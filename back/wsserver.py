@@ -61,7 +61,7 @@ class Server:
             await self.end_points[req["op"]](ws, req["data"])
 
     async def _start_server(self):
-        async with serve(self.new_connection, "localhost", self.port) as self.ws_server:
+        async with serve(self.new_connection, "0.0.0.0", self.port) as self.ws_server:
             await asyncio.Future()
 
     def run_server(self):
