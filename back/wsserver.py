@@ -48,6 +48,7 @@ class Server:
             return
         await resp(ws, True, "Auth success", 10)
         async for msg in ws:
+            print(f"Але такое: {msg}")
             try: json.loads(msg)
             except Exception:
                 await resp(ws, False, "Is not json format", 22)

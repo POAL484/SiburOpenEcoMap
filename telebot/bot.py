@@ -14,6 +14,10 @@ class SiburOpenEcoMap(AsyncTeleBot):
         self.roles = json.load(open("roles.json"))
         self.loop = None
 
+        self.next_step_handlers = {
+            "teleid": [lambda: print(end=''), {}]
+        }
+
     def update_db_roles(self): json.dump(self.roles, open("roles.json", 'w'))
 
     def _run(self):
@@ -75,17 +79,48 @@ async def c_start_main(msg: tb.Message):
     if not await b.check_access(msg, 1): return
     mk = tb.InlineKeyboardMarkup()
     mk.add(tb.InlineKeyboardButton(
-        "Получение дрона", f"drone.{msg.from_user.id}"
+        "Получение дрона", callback_data=f"drone.{msg.from_user.id}"
     ))
-    b.roles[str(msg.from_user.id)]["last_msg"] = await b.send_message(msg.chat.id, "оаоаоа", reply_markup=mk).id
+    b.roles[str(msg.from_user.id)]["last_msg"] = (await b.send_message(msg.chat.id, "оаоаоа", reply_markup=mk)).id
+
+@b.message_handler(content_types=["text"])
+async def text_type(msg: tb.Message):
+    if str(msg.from_user.id) in b.next_step_handlers.keys():
+        if b.next_step_handlers[str(msg.from_user.id)]:
+            await b.next_step_handlers[str(msg.from_user.id)][0](msg, b.next_step_handlers[str(msg.from_user.id)][1])
+            return
+    await b.send_message(msg.chat.id, "оаоао")
 
 @b.callback_query_handler(lambda call: call.data.split('.')[0]=="drone")
 async def call_drone(call: tb.CallbackQuery):
+    #if not await b.check_access(call.message, 1): return
     args = call.data.split('.')
-    
+    await b.edit_message_text("Введи uid c дрона", call.message.chat.id, b.roles[str(call.message.chat.id)]["last_msg"])
+    b.next_step_handlers[args[1]] = [request_drone, {}]
 
-async def resp_for_drone(resp: dict):
-    pass
+async def request_drone(msg: tb.Message, data: dict):
+    print("але туда")
+    wsc.send_with_order({"drone_uid": msg.text}, msg.from_user.id)
+    b.next_step_handlers[str(msg.from_user.id)] = False
+
+PROBE_TYPES_INFO = {
+    "rain": "Осадки",
+    "lake": "Водоем"
+}
+
+async def resp_for_drone(resp: dict, user_id: str):
+    print("Але сюда")
+    if resp["code"] == "25":
+        await b.send_message(user_id, "Дрон с таким uid не найден")
+        return
+    if resp["code"] == "26":
+        await b.send_message(user_id, f"Проба уже взята. Ее uid: {resp['info']['probe_uid']} . Тип: {PROBE_TYPES_INFO[resp['info']['probe_type']]}")
+        return
+    if not resp["code"] == "10":
+        await b.send_message(user_id, "Произошла неизвестная ошибка")
+        ##представьте отправку разработчику
+        return
+    await b.send_message(user_id, f"Информация о пробе получена. Ее uid: {resp['info']['probe_uid']} . Тип: {PROBE_TYPES_INFO[resp['info']['probe_type']]}")
 wsc.end_points["drone"] = resp_for_drone
 
 thrd.Thread(target=wsc.run).start()

@@ -22,6 +22,7 @@ class WsClient:
             "drone": ""
         }
         self.to_recv = False
+        self.to_recv_user_id = "123321"
 
     async def wbs_runner(self):
         self.loop = asyncio.get_running_loop()
@@ -39,23 +40,26 @@ class WsClient:
             print("Autification success")
             self.ws = ws
             async for msg in ws:
+                print("Але тут")
                 if self.to_recv:
-                    data = json.loads(msg)
+                    try: data = json.loads(msg)
+                    except Exception: continue
                     if not data["op"] in self.end_points.keys(): continue
-                    asyncio.ensure_future(self.end_points[data["op"]](data), loop=self.bot.loop)
+                    asyncio.ensure_future(self.end_points[data["op"]](data, self.to_recv_user_id), loop=self.bot.loop)
                     self.to_recv = False
                 else:
                     pass
 
-    def send_with_order(self, data):
-        thrd.Thread(target=self.send_ordered, args=(data,)).start()
+    def send_with_order(self, data, user_id):
+        thrd.Thread(target=self.send_ordered, args=(data, user_id)).start()
 
-    def send_ordered(self, data):
+    def send_ordered(self, data, user_id):
         if isinstance(data, dict):
             try: data = json.dumps(data)
             except Exception: return
         while self.to_recv: pass
         self.to_recv = True
+        self.to_recv_user_id = str(user_id)
         asyncio.ensure_future(self.ws.send(data), loop=self.loop)
 
 
