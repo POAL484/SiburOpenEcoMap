@@ -15,11 +15,12 @@ import json
 
 TOKEN = json.load(open("wbs_token.json"))["token"]
 
-async def resp(ws: wbs.client.WebSocketClientProtocol, status: bool, info: any, code: int):
+async def resp(ws: wbs.client.WebSocketClientProtocol, status: bool, info: any, code: int, op: str = None):
     await ws.send(json.dumps({
         "status": "ok" if status else "err",
         "info": info,
-        "code": str(code)
+        "code": str(code),
+        "op": op
     }))
 
 async def empty(ws: wbs.client.WebSocketClientProtocol, data: dict): pass

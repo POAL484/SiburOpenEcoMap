@@ -278,6 +278,7 @@ params (data):
     drone_uid - uid from drone - string - required
 
 resp:
+    op - operation name - string of op - required
     status - ok or err - string <ok or err> - required
     code - code (more somewhere) - int - required
     ON ERROR:
@@ -289,18 +290,18 @@ resp:
 """
 async def wbs_drone(ws: WebSocketClientProtocol, data: dict):
     if not u.need_fields(data, "drone_uid"):
-        await wss.resp(ws, False, "No fields", 24)
+        await wss.resp(ws, False, "No fields", 24, "drone")
         return
     drone = app.db.drones.find_one({"uid": data["drone_uid"]})
     if not drone:
-        await wss.resp(ws, False, "Drone doesnot found", 25)
+        await wss.resp(ws, False, "Drone doesnot found", 25, "drone")
         return
     if drone["taken"]:
-        await wss.resp(ws, False, {"reason": "Probe taken", "probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 26)
+        await wss.resp(ws, False, {"reason": "Probe taken", "probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 26, "drone")
         return
     drone["taken"] = True
     app.db.drones.find_one_and_replace({"uid": data["drone_uid"]}, drone)
-    await wss.resp(ws, True, {"probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 10)
+    await wss.resp(ws, True, {"probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 10, "drone")
 wsserver.end_points["drone"] = wbs_drone
 
 
@@ -324,29 +325,29 @@ resp:
 """
 async def wbs_super_data(ws: WebSocketClientProtocol, data: dict):
     if not u.need_fields(data, "collection"):
-        await wss.resp(ws, False, "Not enough fields", 24)
+        await wss.resp(ws, False, "Not enough fields", 24, "super_data")
         return
     if "replace" in data.keys():
         if not u.need_fields(data, "filter"):
-            await wss.resp(ws, False, "Not enough fields", 24)
+            await wss.resp(ws, False, "Not enough fields", 24, "super_data")
             return
     coll = app.db.get_collection(data["collection"])
     if len(list(coll.find())) == 0:
-        await wss.resp(ws, False, "Failed to find this collection", 27)
+        await wss.resp(ws, False, "Failed to find this collection", 27, "super_data")
         return
     if "insert" in data.keys():
         coll.insert_one(data["insert"])
         vals = coll.find(data["insert"])
-        await wss.resp(ws, True, {"values": u.no_id_list(list(vals))}, 10)
+        await wss.resp(ws, True, {"values": u.no_id_list(list(vals))}, 10, "super_data")
         return
     vals = list(coll.find(data["filter"]) if "filter" in data.keys() else coll.find())
     if "replace" in data.keys():
         if len(vals) != 1:
-            await wss.resp(ws, False, "Requested filter give more then one or zero values", 28)
+            await wss.resp(ws, False, "Requested filter give more then one or zero values", 28, "super_data")
             return
         coll.find_one_and_replace(vals[0], data["replace"])
         vals = list(coll.find(data["replace"]))
-    await wss.resp(ws, True, {"values": u.no_id_list(vals)}, 10)
+    await wss.resp(ws, True, {"values": u.no_id_list(vals)}, 10, "super_data")
 wsserver.end_points["super_data"] = wbs_super_data
 
 
