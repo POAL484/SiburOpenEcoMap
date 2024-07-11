@@ -377,7 +377,16 @@ async def wbs_set_probe(ws: WebSocketClientProtocol, data: dict):
     if not probe["active"]:
         await wss.resp(ws, False, "Probe inactive", 210, "set_probe")
         return
-    app.db.probe_params.insert_one({})
+    app.db.probe_params.insert_one({
+        "uid": probe["uid"],
+        "timestamp_taken": probe["timestamp_taken"],
+        "timestamp_analises": dt.datetime.now().timestamp(),
+        "params": data["values"]
+    })
+    probe["active"] = False
+    app.db.analizes.find_one_and_replace({"uid": data["probe_uid"]}, probe)
+    await wss.resp(ws, True, "Happy happy happy", 10, "set_probe")
+wsserver.end_points["set_probe"] = wbs_set_probe
 
 
 thrd.Thread(target=wsserver.run_server).start()
