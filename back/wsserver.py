@@ -10,11 +10,13 @@ import json
 # 24 - Not enough fields
 # 25 - drone not found
 # 26 - probe taken
+# 27 - failed to find this collection
+# 28 - bad filter
 
 TOKEN = json.load(open("wbs_token.json"))["token"]
 
 async def resp(ws: wbs.client.WebSocketClientProtocol, status: bool, info: any, code: int):
-    await ws.send(json.dump({
+    await ws.send(json.dumps({
         "status": "ok" if status else "err",
         "info": info,
         "code": str(code)
@@ -42,6 +44,7 @@ class Server:
             return
         if not msg == TOKEN:
             await resp(ws, False, "Auth Failed", 21)
+            return
         await resp(ws, True, "Auth success", 10)
         async for msg in ws:
             try: json.loads(msg)
@@ -58,7 +61,7 @@ class Server:
             await self.end_points[req["op"]](ws, req["data"])
 
     async def _start_server(self):
-        async with serve(self.new_connection, "0.0.0.0", self.port) as self.ws_server:
+        async with serve(self.new_connection, "localhost", self.port) as self.ws_server:
             await asyncio.Future()
 
     def run_server(self):

@@ -128,6 +128,12 @@ def take_live_param_or_int(data: dict, operand: dict) -> int:
     try: return int(data[operand["val"]])
     except KeyError: return 0
 
+def no_id_list(data: list) -> list:
+    d = data.copy()
+    for val in d:
+        del val["_id"]
+    return d
+
 def filtered(data: dict, filter: list = None) -> dict:
     if filter:
         d = {}

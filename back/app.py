@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 app.db = mongo.MongoClient("mongodb://localhost:27017").siburopenecomap
 
-wsserver = wss.Server(app.sb)
+wsserver = wss.Server(app.db)
 
 LIVE_PARAMS = [
     "temp", "tempSpeed",
@@ -146,7 +146,7 @@ def get_last():
         values = {}
         for liveParam in json.loads(request.args["filter"]):
             values[liveParam] = data[liveParam]
-    return u.make_response("ok", {"ll": {"lat": c.fund.ll["uid"][0], "lon": c.fund.ll["uid"][1]}, "timestamp": data['timestamp'], "values": values})
+    return u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "timestamp": data['timestamp'], "values": values})
 
 
 """
@@ -214,7 +214,7 @@ def get__():
     filter = json.loads(request.args["filter"]) if "filter" in request.args.keys() else None
     resp_values = []
     for data in app.db.data.find():
-        resp_values.append({"ll": {"lat": c.fund.ll["uid"][0], "lon": c.fund.ll["uid"][1]}, "uid": data["uid"], "timestamp": data["timestamp"], "values": u.filtered(data, filter)})
+        resp_values.append({"ll": {"lat": c.fund.ll[data["uid"]][0], "lon": c.fund.ll[data["uid"]][1]}, "uid": data["uid"], "timestamp": data["timestamp"], "values": u.filtered(data, filter)})
         if "uid" in request.args.keys():
             if data["uid"] != request.args["uid"]:
                 resp_values.pop()
@@ -260,7 +260,7 @@ def devices():
     vals = []
     for device in app.db.devices.find():
         valdevice = {}
-        valdevice["ll"] = device["ll"]
+        valdevice["ll"] = {"lat": c.fund.ll[device["uid"]][0], "lon": c.fund.ll[device["uid"]][1]}
         valdevice["uid"] = device["uid"]
         vals.append(valdevice)
     return u.make_response("ok", {"values": vals})
@@ -299,10 +299,57 @@ async def wbs_drone(ws: WebSocketClientProtocol, data: dict):
         await wss.resp(ws, False, {"reason": "Probe taken", "probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 26)
         return
     drone["taken"] = True
-    app.db.drones.find_one_and_replce({"uid": data["drone_uid"]}, drone)
-    await wss.resp(ws, True, {"probe_uid": drone["probe_uid"], "probe_type": drone["probe"]}, 10)
+    app.db.drones.find_one_and_replace({"uid": data["drone_uid"]}, drone)
+    await wss.resp(ws, True, {"probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 10)
 wsserver.end_points["drone"] = wbs_drone
 
 
+"""
+Wbs endpoint for read and write data - internal webscokets endpoint
+op: super_data
+params (data):
+    collection - name of collection - string - required
+    filter - filter for mongo - dict - optional (required if "replace" provided)
+    replace - data to replace this - dict - optional
+    insert - data to insert - dict - optional --- if provided filter and replace will not work
+
+resp:
+    status - ok or err - string <ok or err> - required
+    code - code (more somewhere) - int - required
+    ON ERROR:
+        info - information about error - string+ - required --- can be a dict with "reason" key and some additional information, on codes: 
+    ON OK:
+        info - dict of resp - dict - required:
+            values - list of values - list[dict] - required
+"""
+async def wbs_super_data(ws: WebSocketClientProtocol, data: dict):
+    if not u.need_fields(data, "collection"):
+        await wss.resp(ws, False, "Not enough fields", 24)
+        return
+    if "replace" in data.keys():
+        if not u.need_fields(data, "filter"):
+            await wss.resp(ws, False, "Not enough fields", 24)
+            return
+    coll = app.db.get_collection(data["collection"])
+    if len(list(coll.find())) == 0:
+        await wss.resp(ws, False, "Failed to find this collection", 27)
+        return
+    if "insert" in data.keys():
+        coll.insert_one(data["insert"])
+        vals = coll.find(data["insert"])
+        await wss.resp(ws, True, {"values": u.no_id_list(list(vals))}, 10)
+        return
+    vals = list(coll.find(data["filter"]) if "filter" in data.keys() else coll.find())
+    if "replace" in data.keys():
+        if len(vals) != 1:
+            await wss.resp(ws, False, "Requested filter give more then one or zero values", 28)
+            return
+        coll.find_one_and_replace(vals[0], data["replace"])
+        vals = list(coll.find(data["replace"]))
+    await wss.resp(ws, True, {"values": u.no_id_list(vals)}, 10)
+wsserver.end_points["super_data"] = wbs_super_data
+
+
+thrd.Thread(target=wsserver.run_server).start()
 
 app.run("localhost", 1883)
