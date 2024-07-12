@@ -385,6 +385,12 @@ async def wbs_set_probe(ws: WebSocketClientProtocol, data: dict):
     })
     probe["active"] = False
     app.db.analizes.find_one_and_replace({"uid": data["probe_uid"]}, probe)
+    app.db.probe_params.insert_one({"uid": probe["uid"], "device_uid": probe["device_uid"],
+                                    "ll": {"lat": c.fund.ll[probe["device_uid"]][0],
+                                           "lon": c.fund.ll[probe["device_uid"]][1]},
+                                    "values": data["values"], "probe_type": probe["probe_type"]})
+    if probe["probe_type"] == "lake": thrd.Thread(target=c.check_pdk_lake, args=(data["values"],)).start()
+    elif probe["probe_type"] == "rain":thrd.Thread(target=c.check_pdk_rain,args=(data["values"],)).start()
     await wss.resp(ws, True, "Happy happy happy", 10, "set_probe")
 wsserver.end_points["set_probe"] = wbs_set_probe
 

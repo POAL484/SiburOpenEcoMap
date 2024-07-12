@@ -45,3 +45,9 @@ def calc_new_vals(vals: dict):
 
 def check_pdk(vals: dict):
     pass
+
+def check_pdk_lake(vals: dict):
+    pass
+
+def check_pdk_rain(vals: dict):
+    pass
