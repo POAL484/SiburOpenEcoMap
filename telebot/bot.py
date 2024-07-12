@@ -12,6 +12,7 @@ class SiburOpenEcoMap(AsyncTeleBot):
     def __init__(self):
         super().__init__(json.load(open("cfg.json"))["token"], parse_mode="markdown")
         self.roles = json.load(open("roles.json"))
+        self.probes_in_lab = json.load(open("probes_in_lab.json"))
         self.loop = None
 
         self.next_step_handlers = {
@@ -19,6 +20,7 @@ class SiburOpenEcoMap(AsyncTeleBot):
         }
 
     def update_db_roles(self): json.dump(self.roles, open("roles.json", 'w'))
+    def update_db_probes_in_lab(self): json.dump(self.probes_in_lab, open("probes_in_lab.json", 'w'))
 
     def _run(self):
         asyncio.run(self._async_run())
@@ -38,7 +40,7 @@ class SiburOpenEcoMap(AsyncTeleBot):
 
 b = SiburOpenEcoMap()
 
-wsc = wsclient.WsClient(b, "ws://10.82.91.102:3333")
+wsc = wsclient.WsClient(b, "ws://10.82.146.133:3333")
 
 @b.message_handler(commands=["rolechange"])
 async def c_rolechange(msg: tb.Message):
@@ -78,9 +80,12 @@ async def c_roleremove(msg: tb.Message):
 async def c_start_main(msg: tb.Message):
     if not await b.check_access(msg, 1): return
     mk = tb.InlineKeyboardMarkup()
-    mk.add(tb.InlineKeyboardButton(
-        "Получение дрона", callback_data=f"drone.{msg.from_user.id}"
-    ))
+    mk.add(
+        tb.InlineKeyboardButton("Получение дрона", callback_data=f"drone.{msg.from_user.id}")
+    )
+    mk.add(
+        tb.InlineKeyboardButton("Ввод результатов", callback_data=f"set_probe.{msg.from_user.id}")
+    )
     b.roles[str(msg.from_user.id)]["last_msg"] = (await b.send_message(msg.chat.id, "оаоаоа", reply_markup=mk)).id
 
 @b.callback_query_handler(lambda call: call.data.split('.')[0]=="drone")
@@ -112,6 +117,8 @@ async def resp_for_drone(resp: dict, user_id: str):
         await b.send_message(user_id, "Произошла неизвестная ошибка")
         ##представьте отправку разработчику
         return
+    b.probes_in_lab[resp["info"]["probe_uid"]] = {"probe_type": resp["info"]["probe_type"], "drone_taken_by": str(user_id)}
+    b.update_db_probes_in_lab()
     await b.send_message(user_id, f"Информация о пробе получена. Ее uid: {resp['info']['probe_uid']} . Тип: {PROBE_TYPES_INFO[resp['info']['probe_type']]}")
 wsc.end_points["drone"] = resp_for_drone
 
@@ -127,7 +134,7 @@ async def super_data(msg: tb.Message):
 
 async def resp_for_super_data(resp: dict, user_id: str):
     if resp["code"] == "24":
-        await b.send_message(user_id, "Не достаточно полей")
+        await b.send_message(user_id, "He достаточно полей")
         return
     if resp["code"] == "27":
         await b.send_message(user_id, "Коллекиция не найдена")
@@ -141,6 +148,46 @@ async def resp_for_super_data(resp: dict, user_id: str):
         return
     await b.send_message(user_id, json.dumps(resp["info"]["values"], indent=4))
 wsc.end_points["super_data"] = resp_for_super_data
+
+@b.callback_query_handler(lambda call: call.data.split(".")=="set_probe")
+async def call_set_probe(call: tb.CallbackQuery):
+    #if not await b.check_access(call.message, 1): return
+    args = call.data.split('.')
+    await b.edit_message_text("Введи uid c дрона", call.message.chat.id, b.roles[str(call.message.chat.id)]["last_msg"])
+    b.next_step_handlers[args[1]] = [request_set_probe, {}]
+
+def generateMarkupForSetProbe(data: dict, curr_key: str, user_id: str|int) -> tb.InlineKeyboardMarkup:
+    mk = tb.InlineKeyboardMarkup()
+    for key in data.keys():
+        mk.add(
+            tb.InlineKeyboardButton(key, callback_data=f"set_for_set_probe.{user_id}.{key}"),
+            tb.InlineKeyboardButton("[...]" if curr_key==key else data[key], callback_data=f"set_for_set_probe.{user_id}.{key}")
+        )
+    mk.add(tb.InlineKeyboardButton("Закончить ввод", callback_data=f"send_confirm_set_probe.{user_id}"))
+    return mk
+
+PATTERNS_FOR_PROBE_TYPES = {
+    "lake": ["Cl", "SO4", "NH4", "NO2", "NO3", "Fe", "Cu", "Zn", "Ni", "Mg", "-OH", "petroleum"],
+    "rain": ["HCO3", "SO4", "Cl", "NO3", "Ca", "Mg", "Na", "K"]
+}
+
+async def request_set_probe(msg: tb.Message, data: dict):
+    probe_uid = msg.text
+    if not probe_uid in b.probes_in_lab.keys():
+        await b.edit_message_text(f"Проба c uid {probe_uid} не найдена!", msg.chat.id, b.roles[str(msg.from_user.id)]["last_msg"])
+        return
+    probe_type = b.probes_in_lab[probe_uid]["probe_type"]
+    if not probe_type in PATTERNS_FOR_PROBE_TYPES.keys():
+        await b.edit_message_text(f"Бот еще не поддерживает такой тип проб {probe_type} для {probe_uid}", msg.chat.id, b.roles[str(msg.from_user.id)]["last_msg"])
+        return
+    pattern = {}
+    for key in PATTERNS_FOR_PROBE_TYPES:
+        pattern[key] = "-"
+    data_ = {"uid": probe_uid, "probe_type": probe_type, "values": pattern}
+    b.next_step_handlers[str(msg.from_user.id)] = [allo_set_probe, data_]
+
+async def allo_set_probe(msg: tb.Message, data: dict):
+    pass
 
 @b.message_handler(content_types=["text"])
 async def text_type(msg: tb.Message):
