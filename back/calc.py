@@ -16,8 +16,8 @@ class CalculationsFund:
             self.last[device["uid"]]["live"] = list(db.liveparams.find({"uid": device["uid"]}).sort("timestamp"))[-1]
             self.ll[device["uid"]] = (device["lat"], device["lon"])
             del self.last[device["uid"]]["live"]["_id"]
-            self.last[device["uid"]]["lake"] = list(db.probe_params.find({"uid": device["uid"], "probe_type": "lake"}).sort("timestamp_analises"))[-1]["params"]
-            self.last[device["uid"]]["rain"] = list(db.probe_params.find({"uid": device["uid"], "probe_type": "rain"}).sort("timestamp_analises"))[-1]["params"]
+            self.last[device["uid"]]["lake"] = list(db.probe_params.find({"device_uid": device["uid"], "probe_type": "lake"}).sort("timestamp_analises"))[-1]["params"]
+            self.last[device["uid"]]["rain"] = list(db.probe_params.find({"device_uid": device["uid"], "probe_type": "rain"}).sort("timestamp_analises"))[-1]["params"]
 
     def __call__(self, uid: str):
         if not uid in self.last.keys():
