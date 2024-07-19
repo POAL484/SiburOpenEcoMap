@@ -15,7 +15,7 @@ class SiburOpenEcoMap(AsyncTeleBot):
         super().__init__(json.load(open("cfg.json"))["token"], parse_mode="markdown")
         self.roles = json.load(open("roles.json"))
         self.probes_in_lab = json.load(open("probes_in_lab.json"))
-        self.notifications = json.loda(open("notifications.json"))
+        self.notifications = json.load(open("notifications.json"))
         self.loop = None
 
         self.next_step_handlers = {
