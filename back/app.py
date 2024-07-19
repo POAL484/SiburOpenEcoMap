@@ -18,7 +18,6 @@ wsserver = wss.Server(app.db)
 
 LIVE_PARAMS_DEVICED = [
     "temp",
-    "humidity",
     "pressure",
     "C4H10",
     "C3H8",
@@ -43,7 +42,7 @@ Update values - internal api
 /devicelive/<uid: string>/<params: string>
 url parameters:
     uid: UID of device
-    params: in format - <param>-<value>_<param>-<value>_<param>-<value>
+    params: in format - <param>=<value>_<param>=<value>_<param>=<value>
 parametrs:
     con - any - any - optional - if exists, device confirms that it recieved information about probe
 headers:
@@ -51,7 +50,7 @@ headers:
 
 resp:
     //not json format
-    pong: pong - just pong
+    probe_bits - 2 bits, if first bit is 1 device need to take lake probe (or drone is arrived for lake probe), if second is 1 device need to take rain probe (or drone is arrived for rain probe)
 
 сохраняет все значения которые передаются в парамс в бд
 """
@@ -72,7 +71,7 @@ def devicelive(uid: str, params: str):
         app.db.devices.find_one_and_replace({"uid": uid}, stoken_json)
     data = {"uid": uid, "timestamp": dt.datetime.now().timestamp()}
     for param in params.split("_"):
-        data[param.split("-")[0]] = float(param.split("-")[1])
+        data[param.split("=")[0]] = float(param.split("=")[1])
     for lparam in LIVE_PARAMS_DEVICED:
         if lparam not in data.keys():
             data[lparam] = c.fund.last[data["uid"]][lparam]
@@ -88,7 +87,7 @@ url parameters:
     uid - UID of device - string - required
     probe_type - lake or rain or smthg of ready probe - string - required
 headers:
-    Token: <uid> <utoken> - secret token for each device - string
+    Token: <uid> <utoken> - secret token for each device - string - required
 
 resp:
     nu tipo

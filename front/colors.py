@@ -1,0 +1,5 @@
+
+
+BUNNY = "#8DED49"
+BEAR = "#FFF27232"
+DEER = "#EF2525"

@@ -29,6 +29,7 @@ def page_index(page: ft.Page):
                     on_image_error=lambda e: print("TileLayer Error"),
                 ),], expand=True, ))'''
     
-    page.add(page.c.SiburAppBar(page))
+    #page.add(page.c.SiburAppBar(page))
+    #page.controls[-1].recalc()
 
     page.add(ft.TextButton("asdasd"))
