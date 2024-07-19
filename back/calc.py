@@ -38,7 +38,7 @@ def calc_speed(last_val: float, new_val: float, last_time: float, new_time: floa
     return ( new_val - last_val ) / ( (new_time/60) - (last_time/60) )
 
 def calc_new_vals(vals: dict):
-    last_vals = fund.last[vals["uid"]]
+    last_vals = fund.last[vals["uid"]]["live"]
     params = []
     for key in vals.keys():
         if key == "uid" or key == "timestamp": continue
@@ -51,7 +51,7 @@ def calc_new_vals(vals: dict):
         try: last_val = last_vals[key]
         except KeyError: last_val = 0
         vals[f"{key}Speed"] = calc_speed(last_val, vals[key], last_vals["timestamp"], vals["timestamp"])
-    fund.last[vals["uid"]] = vals
+    fund.last[vals["uid"]]["live"] = vals
     fund.db.liveparams.insert_one(vals)
     #thrd.Thread(target=check_pdk, args=(vals, )).start()
 

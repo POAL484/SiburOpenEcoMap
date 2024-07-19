@@ -139,6 +139,7 @@ def get_last():
     #    for lparam in json.loads(request.args["filter"]):
     #        if not lparam in LIVE_PARAMS: return u.return_error(f"Incorrect LiveParam name ({lparam})")
     data = c.fund(request.args["uid"])
+    timestamp = data["live"]["timestamp"]
     values = {}
     if not "filter" in request.args.keys():
         values = data.copy()
@@ -148,7 +149,7 @@ def get_last():
     #    values = {}
     #    for liveParam in json.loads(request.args["filter"]):
     #        values[liveParam] = data[liveParam]
-    return u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "timestamp": data['timestamp'], "values": values})
+    return u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "timestamp": timestamp, "values": values})
 
 
 """
@@ -510,8 +511,12 @@ async def wbs_set_probe(ws: WebSocketClientProtocol, data: dict):
                                     "params": data["values"], "probe_type": probe["probe_type"],
                                     "timestamp_taken": probe["timestamp_taken"],
                                     "timestamp_analises": dt.datetime.now().timestamp(),})
-    if probe["probe_type"] == "lake": thrd.Thread(target=c.check_pdk_lake, args=(data["values"],)).start()
-    elif probe["probe_type"] == "rain":thrd.Thread(target=c.check_pdk_rain,args=(data["values"],)).start()
+    if probe["probe_type"] == "lake":
+        c.fund.last[probe["device_uid"]]["lake"] = data["values"]
+        thrd.Thread(target=c.check_pdk_lake, args=(data["values"],)).start()
+    elif probe["probe_type"] == "rain":
+        c.fund.last[probe["device_uid"]]["rain"] = data["values"]
+        thrd.Thread(target=c.check_pdk_rain,args=(data["values"],)).start()
     await wss.resp(ws, True, "Happy happy happy", 10, "set_probe")
 wsserver.end_points["set_probe"] = wbs_set_probe
 
