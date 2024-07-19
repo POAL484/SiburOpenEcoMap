@@ -12,7 +12,7 @@ import wsserver as wss
 
 app = Flask(__name__)
 
-app.db = mongo.MongoClient("mongodb://localhost:27017").siburopenecomap
+app.db = mongo.MongoClient("mongodb://185.211.170.46:50511").siburopenecomap
 
 wsserver = wss.Server(app.db)
 
