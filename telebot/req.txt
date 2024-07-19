@@ -2,3 +2,5 @@ telebot
 requests
 websockets
 aiohttp
+pillow
+qrcode[pil]

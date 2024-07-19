@@ -1,0 +1,6 @@
+{
+    "user_id": {
+        "notification": true,
+        "last_msg": "msg_id"
+    }
+}

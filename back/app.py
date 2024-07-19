@@ -4,6 +4,7 @@ import pymongo as mongo
 import datetime as dt
 import threading as thrd
 from websockets.client import WebSocketClientProtocol
+import asyncio
 
 import utility as u
 import calc as c
@@ -15,19 +16,21 @@ app.db = mongo.MongoClient("mongodb://localhost:27017").siburopenecomap
 
 wsserver = wss.Server(app.db)
 
-LIVE_PARAMS = [
-    "temp", "tempSpeed",
-    "humidity", "humiditySpeed",
-    "light", "lightSpeed",
-    "gas", "gasSpeed"
-]
-
 LIVE_PARAMS_DEVICED = [
     "temp",
     "humidity",
-    "light",
-    "gas"
+    "pressure",
+    "C4H10",
+    "C3H8",
+    "LPG",
+    "C6H6",
+    "C6H6O"
 ]
+
+LIVE_PARAMS = []
+for param in LIVE_PARAMS_DEVICED:
+    LIVE_PARAMS.append(param)
+    LIVE_PARAMS.append(f"{param}Speed")
 
 c.fund.init(app.db, LIVE_PARAMS)
 
@@ -69,7 +72,7 @@ def devicelive(uid: str, params: str):
         app.db.devices.find_one_and_replace({"uid": uid}, stoken_json)
     data = {"uid": uid, "timestamp": dt.datetime.now().timestamp()}
     for param in params.split("_"):
-        data[param.split("-")[0]] = int(param.split("-")[1])
+        data[param.split("-")[0]] = float(param.split("-")[1])
     for lparam in LIVE_PARAMS_DEVICED:
         if lparam not in data.keys():
             data[lparam] = c.fund.last[data["uid"]][lparam]
@@ -158,7 +161,7 @@ params:
     timestamp_end - time filter, maximium time value - string of datetime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
     condition - condition filter, for LiveParam - string of condition in format "<LiveParam or int>< < or > or >= or <= or = or != or == ><LiveParam or int> - optional
     filter - values to be included in the response (json format) - list[LiveParam] - optional
-    limit - limit of values, to be included in one page, max 250 - int - optional - default value: 25
+    limit - limit of values, to be included on one page, max 250 - int - optional - default value: 25
     page - number of page - int - optional - default value: 1
 
 resp:
@@ -213,7 +216,7 @@ def get__():
     tms_e = u.get_timestamp(request.args["timestamp_end"]) if "timestamp_end" in request.args.keys() else dt.datetime(2100, 7, 13, 12, 0, 0).timestamp()
     filter = json.loads(request.args["filter"]) if "filter" in request.args.keys() else None
     resp_values = []
-    for data in app.db.data.find():
+    for data in app.db.liveparams.find():
         resp_values.append({"ll": {"lat": c.fund.ll[data["uid"]][0], "lon": c.fund.ll[data["uid"]][1]}, "uid": data["uid"], "timestamp": data["timestamp"], "values": u.filtered(data, filter)})
         if "uid" in request.args.keys():
             if data["uid"] != request.args["uid"]:
@@ -265,10 +268,132 @@ def devices():
         vals.append(valdevice)
     return u.make_response("ok", {"values": vals})
 
+"""
+Search in probe params - extrnal api
+/probeparams
+params:
+    device_uid - UID of device - string - optional
+    probe_uid - UID of probe - string - optional
+    timestamp_taken_start - time filter for taken timestamp (fixed when probe taken from device), minimium time value - string of datatime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
+    timestamp_taken_end - time filter for taken timestamp (fixed when probe taken from device), maximium time value - string of datetime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
+    timestamp_analises_start - time filter for analises timestamp (fixed when analises end), minimium time value - string of datatime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
+    timestamp_analises_end - time filter for analises timestamp (fixed when analises end), maximium time value - string of datetime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
+    //condition - condition filter, for LiveParam - string of condition in format "<LiveParam or int>< < or > or >= or <= or = or != or == ><LiveParam or int> - optional
+    //filter - values to be included in the response (json format) - list[LiveParam] - optional
+    probe_type - type of this probe - string of ProbeType - optional
+    limit - limit of values, to be included on one page, max 250 - int - optional - default value: 25
+    page - number of page - int - optional - default value: 1
 
-@c.fund.alertthis()
-def make_alert():
-    pass
+resp:
+    status - ok or err - string <ok or err> - required
+    data - dict of information - dict - required:
+        ON ERROR:
+            reason - information about error - string - required
+        ON OK:
+            total_items - total count of items found for this request - int - required
+            items_on_page - items on this page - int - required
+            page - current page - int - required
+            pages - pages found for this request - int - required
+            values - list of values - list[dict{...}] - required:
+                uid - UID of probe - string - required
+                timestamp_taken - taken timestamp, fixed when drone took probe from device - string of timestamp in format "YYYY-mm-dd HH:MM:SS" - required
+                timestamp_analises - analises timestamp, fixed when analises ends - string of timestamp in format "YYYY-mm-dd HH:MM:SS" - required
+                device_uid - UID of device - string - required
+                ll - latitude and longitude of device - dict{...} - required:
+                    lat - latitued - float - required
+                    lon - longitude - float - required
+                params - dict of measurements - dict{ProbeTypedParams: value} - required
+
+"""
+@app.route("/probeparams/")
+def probeparams():
+    #if not u.need_fields(request.args, "uid"): return u.return_error("Not enough parameters")
+    #if not app.db.devices.find_one({"uid": request.args["uid"]}): return u.return_error("Device was not found by this uid")
+    #if "filter" in request.args.keys():
+    #    try: json.loads(request.args["filter"])
+    #    except Exception: return u.return_error("Filter is not json format")
+    #    for lparam in json.loads(request.args["filter"]):
+    #        if not lparam in LIVE_PARAMS: return u.return_error(f"Incorrect LiveParam name ({lparam})")
+    if "timestamp_taken_start" in request.args.keys():
+        try: dt.datetime.strptime(request.args["timestamp_taken_start"], "%Y-%m-%d %H:%M:%S")
+        except Exception:
+            try: float(request.args["timestamp_taken_start"])
+            except Exception: return u.return_error("Timestamp (taken_start) in wrong format")
+    if "timestamp_taken_end" in request.args.keys():
+        try: dt.datetime.strptime(request.args["timestamp_taken_end"], "%Y-%m-%d %H:%M:%S")
+        except Exception:
+            try: float(request.args["timestamp_taken_end"])
+            except Exception: return u.return_error("Timestamp (taken_end) in wrong format")
+    if "timestamp_analises_start" in request.args.keys():
+        try: dt.datetime.strptime(request.args["timestamp_analises_start"], "%Y-%m-%d %H:%M:%S")
+        except Exception:
+            try: float(request.args["timestamp_analises_start"])
+            except Exception: return u.return_error("Timestamp (analises_start) in wrong format")
+    if "timestamp_analises_end" in request.args.keys():
+        try: dt.datetime.strptime(request.args["timestamp_analises_end"], "%Y-%m-%d %H:%M:%S")
+        except Exception:
+            try: float(request.args["timestamp_analises_end"])
+            except Exception: return u.return_error("Timestamp (analises_end) in wrong format")
+    #condition = None
+    #if "condition" in request.args.keys():
+    #    conditions = u.parse_condition(request.args['condition'])
+    #    if not conditions[0]: return conditions[1]
+    #    condition = conditions[1]
+    if "limit" in request.args.keys():
+        try: int(request.args['limit'])
+        except Exception: return u.return_error("Argument \"limit\" is not int")
+    if "page" in request.args.keys():
+        try: int(request.args['page'])
+        except Exception: return u.return_error("Argument \"page\" is not int")
+    if "probe_type" in request.args.keys():
+        if not request.args["probe_type"] in ("lake", "rain"):
+            return u.return_error("Incorrect probe_type")
+    tms_t_s = u.get_timestamp(request.args["timestamp_taken_start"])[1] if "timestamp_taken_start" in request.args.keys() else dt.datetime(1990, 7, 13, 12, 0, 0).timestamp()
+    tms_t_e = u.get_timestamp(request.args["timestamp_taken_end"])[1] if "timestamp_taken_end" in request.args.keys() else dt.datetime(2100, 7, 13, 12, 0, 0).timestamp()
+    tms_a_s = u.get_timestamp(request.args["timestamp_analises_start"])[1] if "timestamp_analises_start" in request.args.keys() else dt.datetime(1990, 7, 13, 12, 0, 0).timestamp()
+    tms_a_e = u.get_timestamp(request.args["timestamp_analises_end"])[1] if "timestamp_analises_end" in request.args.keys() else dt.datetime(2100, 7, 13, 12, 0, 0).timestamp()
+    #filter = json.loads(request.args["filter"]) if "filter" in request.args.keys() else None
+    resp_values = []
+    for data in app.db.probe_params.find():
+        resp_values.append(dict(data))
+        del resp_values[-1]["_id"]
+        if "probe_uid" in request.args.keys():
+            if data["uid"] != request.args["probe_uid"]:
+                resp_values.pop()
+                continue
+        if "device_uid" in request.args.keys():
+            if data["device_uid"] != request.args["device_uid"]:
+                resp_values.pop()
+                continue
+        #if condition:
+        #    if not u.solve_condiction(condition["sign"],
+        #                              u.take_live_param_or_int(data, condition["oper1"]),
+        #                              u.take_live_param_or_int(data, condition["oper2"])):
+        #        resp_values.pop()
+        #        continue
+        #print(data)
+        if not ( data["timestamp_taken"] > tms_t_s and data["timestamp_taken"] < tms_t_e ):
+            resp_values.pop()
+            continue
+        if not ( data["timestamp_analises"] > tms_a_s and data["timestamp_analises"] < tms_a_e):
+            resp_values.pop()
+            continue
+        if "probe_type" in request.args.keys():
+            if data["probe_type"] != request.args["probe_type"]:
+                resp_values.pop()
+                continue
+    limit = int(request.args["limit"]) if "limit" in request.args.keys() else 25
+    page = int(request.args["page"]) if "page" in request.args.keys() else 1
+    total_pages = (len(resp_values) // limit) + 1
+    if page > total_pages: return u.return_error("Page index out of range")
+    slic = resp_values[limit*(page-1):limit*page if page != total_pages else (limit*(page-1))+(len(resp_values) % limit)]
+    items_on_page = limit if page != total_pages else len(resp_values) % limit
+    return u.make_response("ok", {"total_items": len(resp_values), "items_on_page": items_on_page, "page": page,
+                                  "pages": total_pages, "values": slic})
+
+@c.alertthis()
+def make_alert(type: str, alert: dict):
+    asyncio.ensure_future(wsserver.make_alert(type, alert), loop=wsserver.loop)
 
 
 """
@@ -299,7 +424,8 @@ async def wbs_drone(ws: WebSocketClientProtocol, data: dict):
     if drone["taken"]:
         await wss.resp(ws, False, {"reason": "Probe taken", "probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 26, "drone")
         return
-    app.db.analizes.insert_one({"uid": drone["probe_uid"], "active": True, "type": drone["probe_type"]})
+    app.db.analizes.insert_one({"uid": drone["probe_uid"], "active": True, "probe_type": drone["probe_type"],
+                                "device_uid": drone["device_uid"], "timestamp_taken": drone["timestamp_taken"]})
     drone["taken"] = True
     app.db.drones.find_one_and_replace({"uid": data["drone_uid"]}, drone)
     await wss.resp(ws, True, {"probe_uid": drone["probe_uid"], "probe_type": drone["probe_type"]}, 10, "drone")
@@ -377,18 +503,14 @@ async def wbs_set_probe(ws: WebSocketClientProtocol, data: dict):
     if not probe["active"]:
         await wss.resp(ws, False, "Probe inactive", 210, "set_probe")
         return
-    app.db.probe_params.insert_one({
-        "uid": probe["uid"],
-        "timestamp_taken": probe["timestamp_taken"],
-        "timestamp_analises": dt.datetime.now().timestamp(),
-        "params": data["values"]
-    })
     probe["active"] = False
     app.db.analizes.find_one_and_replace({"uid": data["probe_uid"]}, probe)
     app.db.probe_params.insert_one({"uid": probe["uid"], "device_uid": probe["device_uid"],
                                     "ll": {"lat": c.fund.ll[probe["device_uid"]][0],
                                            "lon": c.fund.ll[probe["device_uid"]][1]},
-                                    "values": data["values"], "probe_type": probe["probe_type"]})
+                                    "params": data["values"], "probe_type": probe["probe_type"],
+                                    "timestamp_taken": probe["timestamp_taken"],
+                                    "timestamp_analises": dt.datetime.now().timestamp(),})
     if probe["probe_type"] == "lake": thrd.Thread(target=c.check_pdk_lake, args=(data["values"],)).start()
     elif probe["probe_type"] == "rain":thrd.Thread(target=c.check_pdk_rain,args=(data["values"],)).start()
     await wss.resp(ws, True, "Happy happy happy", 10, "set_probe")

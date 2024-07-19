@@ -38,6 +38,8 @@ class Server:
             "super_data": empty,
         }
 
+        self.loop = None
+
     async def new_connection(self, ws: wbs.client.WebSocketClientProtocol):
         try:
             async with asyncio.timeout(30):
@@ -49,6 +51,7 @@ class Server:
             await resp(ws, False, "Auth Failed", 21)
             return
         await resp(ws, True, "Auth success", 10)
+        self.ws = ws
         async for msg in ws:
             print(f"Але такое: {msg}")
             try: json.loads(msg)
@@ -65,8 +68,13 @@ class Server:
             await self.end_points[req["op"]](ws, req["data"])
 
     async def _start_server(self):
+        self.loop = asyncio.get_running_loop()
         async with serve(self.new_connection, "0.0.0.0", self.port) as self.ws_server:
             await asyncio.Future()
+
+    async def make_alert(self, type: str, alert: dict):
+        print(json.dumps({"op": "alert", "data": {"type": type, "alert": alert}}))
+        await self.ws.send(json.dumps({"op": "alert", "data": {"type": type, "alert": alert}}))
 
     def run_server(self):
         asyncio.run(self._start_server())

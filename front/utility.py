@@ -1,4 +1,4 @@
-
+from PIL.ImageFont import FreeTypeFont
 
 def rgb_to_hex(color: iter):
     s = "#"
@@ -14,6 +14,7 @@ def set_percent_of_colors(color_1: tuple, color_2: tuple, min_: float, max_: flo
         col.append( max(color_1[i], color_2[i]) - (abs(color_1[i]-color_2[i])*percent) )
     return col
 
-if __name__ == "__main__":
-    print("\n\n\n\n\n\n\n\n\n")
-    print(rgb_to_hex(set_percent_of_colors((71, 0, 64), (244, 71, 212), 0, 100, 50)))
+def calculateFont(font: FreeTypeFont, target_width: float, text: str):
+    prop_width = font.getlength(text)
+    prop_height = font.size
+    return (target_width*prop_height)/prop_width

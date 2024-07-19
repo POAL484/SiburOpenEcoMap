@@ -1,4 +1,7 @@
 import flet as ft
+import flet.map as map
+
+from legacy_v3_grid import *
 
 def page_index(page: ft.Page):
 
@@ -12,5 +15,17 @@ def page_index(page: ft.Page):
 
     page.on_resized = res
 
-    page.add(page.graph)
+    #page.add(page.graph)
+
+    '''page.add(map.Map(configuration=map.MapConfiguration(
+        initial_center = map.MapLatitudeLongitude(43.413991, 39.953606),
+        initial_zoom = 17, on_init=lambda e: print(f"Initialized Map")),
+        layers=[
+                map.TileLayer(
+                    url_template="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    on_image_error=lambda e: print("TileLayer Error"),
+                ),], expand=True, ))'''
+    
+    page.add(page.c.SiburAppBar(page))
+
     page.add(ft.TextButton("asdasd"))
