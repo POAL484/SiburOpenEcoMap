@@ -113,7 +113,7 @@ Get last data for device - external api
 /get_last
 params:
     uid - UID of device - string - required
-    filter - values to be included in the responce (json format) - list[LiveParam] - optional
+    //filter - values to be included in the responce (json format) - list[LiveParam] - optional
 
 resp:
     status - ok or err - string <ok or err> - required
@@ -133,21 +133,21 @@ resp:
 def get_last():
     if not u.need_fields(request.args, "uid"): return u.return_error("Not enough parametrs")
     if not app.db.devices.find_one({"uid": request.args['uid']}): return u.return_error("Device was not found by this uid")
-    if "filter" in request.args.keys():
-        try: json.loads(request.args['filter'])
-        except Exception: return u.return_error("Filter is not in json format")
-        for lparam in json.loads(request.args["filter"]):
-            if not lparam in LIVE_PARAMS: return u.return_error(f"Incorrect LiveParam name ({lparam})")
+    #if "filter" in request.args.keys():
+    #    try: json.loads(request.args['filter'])
+    #    except Exception: return u.return_error("Filter is not in json format")
+    #    for lparam in json.loads(request.args["filter"]):
+    #        if not lparam in LIVE_PARAMS: return u.return_error(f"Incorrect LiveParam name ({lparam})")
     data = c.fund(request.args["uid"])
     values = {}
     if not "filter" in request.args.keys():
         values = data.copy()
-        del values["uid"]
-        del values["timestamp"]
-    else:
-        values = {}
-        for liveParam in json.loads(request.args["filter"]):
-            values[liveParam] = data[liveParam]
+        del values["live"]["uid"]
+        del values["live"]["timestamp"]
+    #else:
+    #    values = {}
+    #    for liveParam in json.loads(request.args["filter"]):
+    #        values[liveParam] = data[liveParam]
     return u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "timestamp": data['timestamp'], "values": values})
 
 

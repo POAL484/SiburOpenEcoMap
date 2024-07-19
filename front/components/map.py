@@ -1,4 +1,5 @@
 import flet as ft
 
 class SiburMap:
-    pass
+    def __init__(self, page: ft.Page):
+        pass

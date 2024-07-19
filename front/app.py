@@ -1,10 +1,16 @@
 import flet as ft
 import requests as req
+import threading as thrd
 
 from pages import *
 import components
 import utility
 import colors
+import req_storage
+
+storage = req_storage.Storage()
+storage.fetch()
+thrd.Thread(target=storage.keep).start()
 
 def main(page: ft.Page):
     def router(e: ft.RouteChangeEvent):
@@ -19,6 +25,8 @@ def main(page: ft.Page):
     page.c = components
     page.u = utility
     page.cols = colors
+
+    page.storage = storage
 
     page.on_route_change = router
 

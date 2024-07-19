@@ -12,9 +12,12 @@ class CalculationsFund:
         self.last = {}
         self.ll = {}
         for device in db.devices.find():
-            self.last[device["uid"]] = list(db.liveparams.find({"uid": device["uid"]}).sort("timestamp"))[-1]
+            self.last[device["uid"]] = {}
+            self.last[device["uid"]]["live"] = list(db.liveparams.find({"uid": device["uid"]}).sort("timestamp"))[-1]
             self.ll[device["uid"]] = (device["lat"], device["lon"])
-            del self.last[device["uid"]]["_id"]
+            del self.last[device["uid"]]["live"]["_id"]
+            self.last[device["uid"]]["lake"] = list(db.probe_params.find({"uid": device["uid"], "probe_type": "lake"}).sort("timestamp_analises"))[-1]["params"]
+            self.last[device["uid"]]["rain"] = list(db.probe_params.find({"uid": device["uid"], "probe_type": "rain"}).sort("timestamp_analises"))[-1]["params"]
 
     def __call__(self, uid: str):
         if not uid in self.last.keys():
@@ -50,7 +53,7 @@ def calc_new_vals(vals: dict):
         vals[f"{key}Speed"] = calc_speed(last_val, vals[key], last_vals["timestamp"], vals["timestamp"])
     fund.last[vals["uid"]] = vals
     fund.db.liveparams.insert_one(vals)
-    thrd.Thread(target=check_pdk, args=(vals, )).start()
+    #thrd.Thread(target=check_pdk, args=(vals, )).start()
 
 PDK_GASES = {
     "C4H10": 200,
