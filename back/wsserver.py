@@ -41,12 +41,14 @@ class Server:
         self.loop = None
 
     async def new_connection(self, ws: wbs.client.WebSocketClientProtocol):
-        try:
-            async with asyncio.timeout(30):
+        #try:
+        #    async with asyncio.timeout(30):
+        if 1:
+            if 1:
                 msg = await ws.recv()
-        except TimeoutError:
-            await resp(ws, False, "Timeout", 20)
-            return
+        #except TimeoutError:
+        #    await resp(ws, False, "Timeout", 20)
+        #    return
         if not msg == TOKEN:
             await resp(ws, False, "Auth Failed", 21)
             return
