@@ -6,7 +6,7 @@ def generate_label(uid: str, name: str, probe_type: str) -> str:
     font = ImageFont.truetype("Roboto-Medium.ttf", 69)
     x_max = max(max(font.getlength(f"UID: {uid}"), font.getlength(f"Тип пробы: {probe_type}")),
                 font.getlength(f"Дрон с пробой был принят: {name}")) + 200 + 100
-    qr = qrcode.make(f"https://t.me/siburopenecomapbot?start={uid.replace('-', 'X')}")
+    qr = qrcode.make(f"https://t.me/siburopenecomapbot?start=P{uid.replace('-', 'X')}")
     qr = qr.resize((225, 225))
     img.paste(qr, (0, 225))
     imgDraw = ImageDraw.Draw(img)

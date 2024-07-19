@@ -10,19 +10,37 @@ font = ImageFont.truetype("fonts/seguibli.ttf", 100)
 
 class SiburAppBar(ft.Container):
     def __init__(self, page: ft.Page):
-        grid = RowGridView((1, 3, 2, 3, 2, 3, 2, 3, 1))
+        self.grid = RowGridView((1, 3, 2, 3, 2, 3, 2, 3, 1))
+        self.page = page
         w = page.width
-        maxFontSize = 34
+        self.maxFontSize = 34
         super().__init__(
-            ft.Row([
-                ft.Container(width=grid.calc_grid(1, w)),
-                ft.Container(ft.Image("https://i.ibb.co/ky7MyMc/siburok.png", width=grid.calc_grid(3, w), height=grid.calc_grid(3, w)*0.26), on_click=lambda e: print(e)),
-                ft.Container(width=grid.calc_grid(2, w)),
-                ft.Container(ft.Text("KAPTA", size=min(page.u.calculateFont(font, grid.calc_grid(3, w), "KAPTA"), maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=grid.calc_grid(3, w)),
-                ft.Container(width=grid.calc_grid(2, w)),
-                ft.Container(ft.Text("КАРТЫ СИБУРА", size=min(page.u.calculateFont(font, grid.calc_grid(3, w), "КАРТЫ СИБУРА"), maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=grid.calc_grid(3, w)),
-                ft.Container(width=grid.calc_grid(2, w)),
-                ft.Container(ft.Text("API", size=min(page.u.calculateFont(font, grid.calc_grid(3, w), "API"), maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=grid.calc_grid(3, w)),
-                ft.Container(width=grid.calc_grid(1, w))
+            ft.Column([ft.Row([
+                ft.Container(width=self.grid.calc_grid(1, w)),
+                ft.Container(ft.Image("https://i.ibb.co/ky7MyMc/siburok.png", width=self.grid.calc_grid(3, w), height=self.grid.calc_grid(3, w)*0.26), on_click=lambda e: print(e)),
+                ft.Container(width=self.grid.calc_grid(2, w)),
+                ft.Container(ft.Text("KAPTA", size=min(page.u.calculateFont(font, self.grid.calc_grid(3, w), "KAPTA"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w)),
+                ft.Container(width=self.grid.calc_grid(2, w)),
+                ft.Container(ft.Text("ЗАВОДЫ СИБУРА", size=min(page.u.calculateFont(font, self.grid.calc_grid(3, w), "ЗАВОДЫ СИБУРА"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w)),
+                ft.Container(width=self.grid.calc_grid(2, w)),
+                ft.Container(ft.Text("API", size=min(page.u.calculateFont(font, self.grid.calc_grid(3, w), "API"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w)),
+                ft.Container(width=self.grid.calc_grid(1, w))
             ]), 
+            ft.Container(bgcolor="white", height=2, width=w)]), 
         )
+
+    def recalc(self):
+        w = self.page.width
+        self.content = ft.Column([ft.Row([
+                ft.Container(width=self.grid.calc_grid(1, w)),
+                ft.Container(ft.Image("https://i.ibb.co/ky7MyMc/siburok.png", width=self.grid.calc_grid(3, w), height=self.grid.calc_grid(3, w)*0.26), on_click=lambda e: print(e)),
+                ft.Container(width=self.grid.calc_grid(2, w)),
+                ft.Container(ft.Text("KAPTA", size=min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "KAPTA"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w)),
+                ft.Container(width=self.grid.calc_grid(2, w)),
+                ft.Container(ft.Text("ЗАВОДЫ СИБУРА", size=min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "ЗАВОДЫ СИБУРА"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w)),
+                ft.Container(width=self.grid.calc_grid(2, w)),
+                ft.Container(ft.Text("API", size=min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "API"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w)),
+                ft.Container(width=self.grid.calc_grid(1, w))
+            ]), 
+            ft.Container(bgcolor="white", height=2, width=w)])
+        self.update()
