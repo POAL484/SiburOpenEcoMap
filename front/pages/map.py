@@ -19,7 +19,7 @@ SIBUR_UIDS = {
 def page_map(page: ft.Page):
 
     def filter_changed():
-        print(filter_.filter)
+        map.refilter(filter_.filter)
 
     hgrid = legacy_grid.RowGridView((1, 8, 1))
     wgrid = legacy_grid.RowGridView((4, 1))

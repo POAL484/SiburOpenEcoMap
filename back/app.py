@@ -521,7 +521,7 @@ async def wbs_set_probe(ws: WebSocketClientProtocol, data: dict):
         thrd.Thread(target=c.check_pdk_lake, args=(data["values"],)).start()
     elif probe["probe_type"] == "rain":
         c.fund.last[probe["device_uid"]]["rain"] = data["values"]
-        c.fund.last[probe["device_uid"]]["lake"]["timestamp_analises"] = dt.datetime.now().timestamp()
+        c.fund.last[probe["device_uid"]]["rain"]["timestamp_analises"] = dt.datetime.now().timestamp()
         thrd.Thread(target=c.check_pdk_rain,args=(data["values"],)).start()
     await wss.resp(ws, True, "Happy happy happy", 10, "set_probe")
 wsserver.end_points["set_probe"] = wbs_set_probe

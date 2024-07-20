@@ -2,6 +2,14 @@ import flet as ft
 
 import flet.map as map
 
+SIBUR_UIDS = {
+    "Тобольск": "ed5973d8-b0de-49d5-941c-c1fd35897902",
+    "Воронеж": "9af81ccb-5dab-4cde-8fdf-dd64254e3142",
+    "Дзержинск": "852f88c2-85c3-4e00-a31c-56fc938dd210",
+    "Казань": "3016db26-26e0-4441-85a9-9b1e0e2212b2",
+    "Томск": "eb01fd24-6b8e-4eec-b03c-477a2b13aacd"
+}
+
 class SiburMap:
     def __init__(self, page: ft.Page, width: int, height: int):
         self.map = map.Map(
@@ -39,3 +47,22 @@ class SiburMap:
         self.map.layers.append(self.devices_layer)
         #self.map.update()
         self.comp = ft.Container(self.map, width=width, height=height, border_radius=10)
+        self.page = page
+
+    def refilter(self, filter: str):
+        dvcs = []
+        for dvc in self.page.storage.devices:
+            dvcs.append(self.page.c.Animal(self.page, dvc))
+            if filter['sib'] == "sib":
+                if not dvc.uid in SIBUR_UIDS.values():
+                    dvcs.pop()
+                    continue
+            if filter['sib'] == "!sib":
+                if dvc.uid in SIBUR_UIDS.values():
+                    dvcs.pop()
+                    continue
+            if not dvc.pdkClass._class in filter['class']:
+                dvcs.pop()
+                continue
+        self.devices_layer.markers = dvcs
+        self.map.update()
