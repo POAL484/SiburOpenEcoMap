@@ -30,6 +30,16 @@ class CalculationsFund:
                 d[lparam] = 0
             return d'''
         return self.last[uid]
+    
+    def gll(self, uid: str):
+        try:
+            return self.ll[uid]
+        except KeyError:
+            device = self.db.find_one({"uid": uid})
+            if not device: (50, 30)
+            self.ll[uid] = (device['lat'], device['lon'])
+            return self.ll[uid]
+
 
 fund = CalculationsFund()
 

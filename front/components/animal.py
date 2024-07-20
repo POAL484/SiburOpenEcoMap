@@ -9,9 +9,9 @@ import sdevice
 #640
 
 images_links = {
-    "deer": "https://i.ibb.co/FYH1Tw9/deer-icon.png",
-    "bear": "https://i.ibb.co/Xy70WXf/bear-icon.png",
-    "bunny": "https://i.ibb.co/RcZRPdd/bunny-icon.png"
+    "deer": ",https://i.ibb.co/FYH1Tw9/deer-icon.png",
+    "bear": ",https://i.ibb.co/Xy70WXf/bear-icon.png",
+    "bunny": ",https://i.ibb.co/RcZRPdd/bunny-icon.png"
 }
 
 class Animal(map.Marker):
@@ -23,7 +23,7 @@ class Animal(map.Marker):
             case "bear": col = page.cols.BEAR
             case "deer": col = page.cols.DEER
         super().__init__(
-            ft.Image(images_links[dvc.pdkClass._class], error_content=ft.Container(shape=ft.BoxShape.CIRCLE, bgcolor=col)),
+            ft.Image(images_links[dvc.pdkClass._class], error_content=ft.Container(shape=ft.BoxShape.CIRCLE, bgcolor=col),),
             map.MapLatitudeLongitude(dvc.lat, dvc.lon),
             alignment=ft.alignment.Alignment(0, 0),
             width=r,

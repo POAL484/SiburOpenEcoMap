@@ -27,7 +27,7 @@ class SiburMap:
             ],
             map.MapConfiguration(
                 map.MapLatitudeLongitude(62, 95),
-                0, 3.33, map.MapInteractionConfiguration(flags=map.MapInteractiveFlag.ALL)
+                0, 2.9183, map.MapInteractionConfiguration(flags=map.MapInteractiveFlag.ALL)
             ),
             expand=True
         )

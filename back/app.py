@@ -152,8 +152,8 @@ def get_last():
     #    for liveParam in json.loads(request.args["filter"]):
     #        values[liveParam] = data[liveParam]
     print("\nresp")
-    print(u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "values": values}))
-    return u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "values": values})
+    print(u.make_response("ok", {"ll": {"lat": c.fund.gll(request.args["uid"])[0], "lon": c.fund.gll(request.args["uid"])[1]}, "values": values}))
+    return u.make_response("ok", {"ll": {"lat": c.fund.gll(request.args["uid"])[0], "lon": c.fund.gll(request.args["uid"])[1]}, "values": values})
 
 
 """
@@ -221,7 +221,7 @@ def get__():
     filter = json.loads(request.args["filter"]) if "filter" in request.args.keys() else None
     resp_values = []
     for data in app.db.liveparams.find():
-        resp_values.append({"ll": {"lat": c.fund.ll[data["uid"]][0], "lon": c.fund.ll[data["uid"]][1]}, "uid": data["uid"], "timestamp": data["timestamp"], "values": u.filtered(data, filter)})
+        resp_values.append({"ll": {"lat": c.fund.gll(data["uid"])[0], "lon": c.fund.gll(data["uid"])[1]}, "uid": data["uid"], "timestamp": data["timestamp"], "values": u.filtered(data, filter)})
         if "uid" in request.args.keys():
             if data["uid"] != request.args["uid"]:
                 resp_values.pop()
@@ -267,7 +267,7 @@ def devices():
     vals = []
     for device in app.db.devices.find():
         valdevice = {}
-        valdevice["ll"] = {"lat": c.fund.ll[device["uid"]][0], "lon": c.fund.ll[device["uid"]][1]}
+        valdevice["ll"] = {"lat": c.fund.gll(device["uid"])[0], "lon": c.fund.gll(device["uid"])[1]}
         valdevice["uid"] = device["uid"]
         vals.append(valdevice)
     return u.make_response("ok", {"values": vals})
@@ -510,8 +510,8 @@ async def wbs_set_probe(ws: WebSocketClientProtocol, data: dict):
     probe["active"] = False
     app.db.analizes.find_one_and_replace({"uid": data["probe_uid"]}, probe)
     app.db.probe_params.insert_one({"uid": probe["uid"], "device_uid": probe["device_uid"],
-                                    "ll": {"lat": c.fund.ll[probe["device_uid"]][0],
-                                           "lon": c.fund.ll[probe["device_uid"]][1]},
+                                    "ll": {"lat": c.fund.gll(probe["device_uid"])[0],
+                                           "lon": c.fund.gll(probe["device_uid"])[1]},
                                     "params": data["values"], "probe_type": probe["probe_type"],
                                     "timestamp_taken": probe["timestamp_taken"],
                                     "timestamp_analises": dt.datetime.now().timestamp(),})

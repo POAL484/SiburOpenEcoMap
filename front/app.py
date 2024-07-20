@@ -14,6 +14,9 @@ thrd.Thread(target=storage.keep).start()
 
 def main(page: ft.Page):
     def router(e: ft.RouteChangeEvent):
+        if len(page.controls) >= 1:
+            if page.controls[0].is_banner:
+                page.close(page.controls[0].banner)
         page.clean()
         page.add(page.c.SiburAppBar(page))
         page.controls[-1].recalc()

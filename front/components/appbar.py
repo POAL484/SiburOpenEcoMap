@@ -32,9 +32,9 @@ class SiburAppBar(ft.Container):
                 min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "KAPTA"), self.maxFontSize),
                 min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "ЗАВОДЫ СИБУРА"), self.maxFontSize),
                 min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "API"), self.maxFontSize)
-            ) + 50
+            ) + 45
         else:
-            return ((w/3)*.26) + 50
+            return ((w/3)*.26) + 45
 
     def recalc(self):
         if self.is_banner:
