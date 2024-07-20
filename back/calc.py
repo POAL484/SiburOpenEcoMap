@@ -22,6 +22,7 @@ class CalculationsFund:
             pr = list(db.probe_params.find({"device_uid": device["uid"], "probe_type": "rain"}).sort("timestamp_analises"))[-1]
             self.last[device["uid"]]["rain"] = pr["params"]
             self.last[device["uid"]]["rain"]["timestamp_analises"] = pr["timestamp_analises"]
+            print(self.last)
 
     def __call__(self, uid: str):
         '''if not uid in self.last.keys():
