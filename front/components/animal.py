@@ -4,12 +4,12 @@ import flet.map as map
 
 import math
 
-import device
+import sdevice
 
 #640
 
 class Animal(map.CircleMarker):
-    def __init__(self, page: ft.Page, dvc: device.Device):
+    def __init__(self, page: ft.Page, dvc: sdevice.Device):
         r = math.sqrt((page.width*page.height)/640)
         col = page.cols.BUNNY
         match dvc.pdkClass._class:

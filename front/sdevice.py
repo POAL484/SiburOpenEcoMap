@@ -48,7 +48,7 @@ class PdkClass:
                     if self._class == "bunny": self._class = "bear"
 
 class Device:
-    def __init__(self, uid: str, lat: float, lon: float, last_vals: dict, timestamp: float):
+    def __init__(self, uid: str, lat: float, lon: float, last_vals: dict, timestamp_live: float, timestamp_lake: float, timestamp_rain: float):
         val_to_pdk = {}
         #val_to_pdk[last_vals["live"]] = PDK_GASES
         val_to_pdk[last_vals["lake"]] = PDK_LAKE
@@ -57,7 +57,17 @@ class Device:
         self.uid = uid
         self.lat = lat
         self.lon = lon
+        self.timestamp_live = timestamp_live
+        self.timestamp_lake = timestamp_lake
+        self.timestamp_rain = timestamp_rain
 
     @classmethod
     def from_responce(self, uid: str, resp: dict):
-        return Device(uid, resp['ll']['lat'], resp['ll']['lon'], resp['values'], resp['timestamp'])
+        return Device(uid,
+                      resp['ll']['lat'],
+                      resp['ll']['lon'],
+                      resp['values'],
+                      resp['values']['live']['timestamp'],
+                      resp['values']['lake']['timestamp_analises'],
+                      resp['values']['rain']['timestamp_analises']
+                )

@@ -1,7 +1,7 @@
 import requests as req
 import time
 
-import device
+import sdevice
 
 class Storage:
     def __init__(self):
