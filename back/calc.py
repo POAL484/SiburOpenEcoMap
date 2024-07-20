@@ -35,7 +35,7 @@ class CalculationsFund:
         try:
             return self.ll[uid]
         except KeyError:
-            device = self.db.find_one({"uid": uid})
+            device = self.db.devices.find_one({"uid": uid})
             if not device: (50, 30)
             self.ll[uid] = (device['lat'], device['lon'])
             return self.ll[uid]

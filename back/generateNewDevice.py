@@ -67,12 +67,12 @@ new_device = {
 live = {}
 for param in LIVE_PARAMS:
     live[param] = 0
-lake = {"values": {}}
+lake = {"params": {}}
 for param in PROBE_LAKE:
-    lake['values'][param] = 0
-rain = {"values": {}}
+    lake['params'][param] = 0
+rain = {"params": {}}
 for param in PROBE_RAIN:
-    rain['values'][param] = 0
+    rain['params'][param] = 0
 
 live['uid'] = uid
 live['timestamp'] = dt.datetime.now().timestamp()
