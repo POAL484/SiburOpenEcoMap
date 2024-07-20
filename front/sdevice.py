@@ -35,25 +35,27 @@ PDK_RAIN = {
 }
 
 class PdkClass:
-    def __init__(self, val_to_pdk: dict):
+    def __init__(self, vals: dict, pdk: dict):
         self._class = "bunny"
-        for vals in val_to_pdk.keys():
-            pdk = val_to_pdk[vals]
-            for val_name in vals.keys():
-                try: pdk[val_name]
-                except KeyError:
-                    continue
-                if vals[val_name] >= pdk[val_name]: self._class = "deer"
-                elif vals[val_name] >= pdk[val_name]*0.8:
-                    if self._class == "bunny": self._class = "bear"
+        for valtype in vals.keys():
+            assert valtype in pdk.keys()
+            for val in vals[valtype].keys():
+                if val in pdk[valtype].keys():
+                    if vals[valtype][val] >= pdk[valtype][val]: self._class = "deer"
+                    elif vals[valtype][val] >= pdk[valtype][val]*.8:
+                        if self._class == "bunny": self._class = "bear"
 
 class Device:
     def __init__(self, uid: str, lat: float, lon: float, last_vals: dict, timestamp_live: float, timestamp_lake: float, timestamp_rain: float):
-        val_to_pdk = {}
-        #val_to_pdk[last_vals["live"]] = PDK_GASES
-        val_to_pdk[last_vals["lake"]] = PDK_LAKE
-        val_to_pdk[last_vals["rain"]] = PDK_RAIN
-        self.pdkClass = PdkClass(val_to_pdk)
+        self.pdkClass = PdkClass({
+            #"live": last_vals["live"],
+            "lake": last_vals["lake"],
+            "rain": last_vals["rain"]
+        }, {
+            #"live": PDK_GASES,
+            "lake": PDK_LAKE,
+            "rain": PDK_RAIN
+        })
         self.uid = uid
         self.lat = lat
         self.lon = lon

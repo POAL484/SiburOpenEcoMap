@@ -1,5 +1,7 @@
 import flet as ft
 
+import flet.canvas as cv
+
 from PIL import ImageFont
 
 from legacy_grid import RowGridView
@@ -22,22 +24,34 @@ class SiburAppBar(ft.Container):
         else: self.page.open(self.banner)
         self.is_banner = not self.is_banner
 
+    def calc_size(self):
+        w = self.page.width
+        if w >= 800:
+            return max(
+                self.grid.calc_grid(3, w)*.26,
+                min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "KAPTA"), self.maxFontSize),
+                min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "ЗАВОДЫ СИБУРА"), self.maxFontSize),
+                min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "API"), self.maxFontSize)
+            ) + 50
+        else:
+            return ((w/3)*.26) + 50
+
     def recalc(self):
         if self.is_banner:
             self.page.close(self.banner)
             self.is_banner = False
         w = self.page.width
-        self.banner = ft.Banner(
+        self.banner = ft.Banner( #менюшка для мобилок
             ft.Container(
                 ft.Column([
                     ft.Container(ft.Image("https://i.ibb.co/ky7MyMc/siburok.png", width=w/1.75, height=(w/1.75)*0.26), alignment=ft.alignment.Alignment(0, 0), on_click=lambda e: self.page.go("/")),
-                    ft.Container(ft.Text("KAPTA", size=(min(self.page.u.calculateFont(font, w/1.75, "KAPTA"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), width=w, on_click=lambda e: self.page.go("/map")),
-                    ft.Container(ft.Text("ЗАВОДЫ СИБУРА", size=(min(self.page.u.calculateFont(font, w/1.75, "ЗАВОДЫ СИБУРА"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), width=w, on_click=lambda e: self.page.go("/sibur")),
-                    ft.Container(ft.Text("API", size=(min(self.page.u.calculateFont(font, w/1.75, "API"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), width=w, on_click=lambda e: self.page.go("/api")),
+                    ft.Container(ft.Text("KAPTA", size=(min(self.page.u.calculateFont(font, w/1.75, "KAPTA"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), alignment=ft.alignment.Alignment(0, 0), width=w, on_click=lambda e: self.page.go("/map")),
+                    ft.Container(ft.Text("ЗАВОДЫ СИБУРА", size=(min(self.page.u.calculateFont(font, w/1.75, "ЗАВОДЫ СИБУРА"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), alignment=ft.alignment.Alignment(0, 0), width=w, on_click=lambda e: self.page.go("/sibur")),
+                    ft.Container(ft.Text("API", size=(min(self.page.u.calculateFont(font, w/1.75, "API"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), alignment=ft.alignment.Alignment(0, 0), width=w, on_click=lambda e: self.page.go("/api")),
                 ], ft.MainAxisAlignment.CENTER)
             ), actions=[ft.Container(width=0, height=0)]
         )
-        if w >= 800:
+        if w >= 800: #бар для пк
             self.content = ft.Column([ft.Row([
                     ft.Container(width=self.grid.calc_grid(1, w)),
                     ft.Container(ft.Image("https://i.ibb.co/ky7MyMc/siburok.png", width=self.grid.calc_grid(3, w), height=self.grid.calc_grid(3, w)*0.26), on_click=lambda e: self.page.go("/")),
@@ -50,7 +64,7 @@ class SiburAppBar(ft.Container):
                     ft.Container(width=self.grid.calc_grid(1, w))
                 ]), 
                 ft.Container(bgcolor="white", height=2, width=w)])
-        else:
+        else: #кнопка для мобилок
             self.content = ft.Column([
                 ft.Container(ft.Row([
                     ft.Icon(ft.icons.KEYBOARD_ARROW_UP, "#02818a"),

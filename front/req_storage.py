@@ -13,11 +13,11 @@ class Storage:
         if resp['status'] != "ok":
             print(resp['data']['reason'])
         devices = resp['data']['values']
-        print(devices)
+        #print(devices)
         for device in devices:
             resp = req.get("http://siburok.ru:1883/get_last",
                            params={"uid": device['uid']}).json()
-            print(resp)
+            #print(resp)
             if resp['status'] != "ok":
                 print(resp['data']['reason'])
                 return
@@ -28,5 +28,7 @@ class Storage:
         time_start = time.time()
         while 1:
             if time.time() - time_start > 13:
-                self.fetch()
+                time_start = time.time()
+                try: self.fetch()
+                except Exception as e: print(f"req_storage fetching error: {e}")
             time.sleep(.33)
