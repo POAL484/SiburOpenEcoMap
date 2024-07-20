@@ -139,7 +139,7 @@ def get_last():
     #    for lparam in json.loads(request.args["filter"]):
     #        if not lparam in LIVE_PARAMS: return u.return_error(f"Incorrect LiveParam name ({lparam})")
     data = c.fund(request.args["uid"])
-    if not "filter" in request.args.keys():
+    if 1:#not "filter" in request.args.keys():
         values = data.copy()
         livevals = values['live'].copy()
         del livevals["uid"]
@@ -149,7 +149,8 @@ def get_last():
     #    values = {}
     #    for liveParam in json.loads(request.args["filter"]):
     #        values[liveParam] = data[liveParam]
-    #print(u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "values": values}))
+    print("\nresp")
+    print(u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "values": values}))
     return u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "values": values})
 
 

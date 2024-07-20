@@ -44,7 +44,6 @@ def calc_speed(last_val: float, new_val: float, last_time: float, new_time: floa
 def calc_new_vals(vals: dict):
     last_vals = fund.last[vals["uid"]]["live"]
     params = []
-    del vals["_id"]
     for key in vals.keys():
         if key == "uid" or key == "timestamp": continue
         params.append(f"{key}Speed")
@@ -58,6 +57,8 @@ def calc_new_vals(vals: dict):
         vals[f"{key}Speed"] = calc_speed(last_val, vals[key], last_vals["timestamp"], vals["timestamp"])
     fund.last[vals["uid"]]["live"] = vals
     fund.db.liveparams.insert_one(vals)
+    print("\nfund.last")
+    print(fund.last[vals['uid']])
     #thrd.Thread(target=check_pdk, args=(vals, )).start()
 
 PDK_GASES = {
