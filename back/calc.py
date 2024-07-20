@@ -58,7 +58,7 @@ def calc_new_vals(vals: dict):
         except KeyError: last_val = 0
         vals[f"{key}Speed"] = calc_speed(last_val, vals[key], last_vals["timestamp"], vals["timestamp"])
     fund.last[vals["uid"]]["live"] = vals
-    fund.db.liveparams.insert_one(vals)
+    fund.db.liveparams.insert_one(vals.copy())
     print("\nfund.last 2")
     print(fund.last[vals['uid']])
     #thrd.Thread(target=check_pdk, args=(vals, )).start()
