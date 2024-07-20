@@ -76,6 +76,8 @@ def devicelive(uid: str, params: str):
         if lparam not in data.keys():
             data[lparam] = c.fund.last[data["uid"]]['live'][lparam]
     #app.db.liveparams.insert_one(data)
+    print("\ndata")
+    print(data)
     thrd.Thread(target=c.calc_new_vals, args=(data,)).start()
     return str(int(str(int(stoken_json["is_probe_lake"]))+str(int(stoken_json["is_probe_rain"]))))
 
