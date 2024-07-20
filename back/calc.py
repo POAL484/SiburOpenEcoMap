@@ -24,11 +24,11 @@ class CalculationsFund:
             self.last[device["uid"]]["rain"]["timestamp_analises"] = pr["timestamp_analises"]
 
     def __call__(self, uid: str):
-        if not uid in self.last.keys():
+        '''if not uid in self.last.keys():
             d = {}
             for lparam in self.LIVEPARAMS:
                 d[lparam] = 0
-            return d
+            return d'''
         return self.last[uid]
 
 fund = CalculationsFund()

@@ -139,11 +139,12 @@ def get_last():
     #    for lparam in json.loads(request.args["filter"]):
     #        if not lparam in LIVE_PARAMS: return u.return_error(f"Incorrect LiveParam name ({lparam})")
     data = c.fund(request.args["uid"])
-    values = {}
     if not "filter" in request.args.keys():
         values = data.copy()
-        del values["live"]["uid"]
-        del values["live"]["timestamp"]
+        livevals = values['live'].copy()
+        del livevals["uid"]
+        values['live'] = livevals
+        #del values["live"]["timestamp"]
     #else:
     #    values = {}
     #    for liveParam in json.loads(request.args["filter"]):

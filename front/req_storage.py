@@ -21,7 +21,7 @@ class Storage:
             if resp['status'] != "ok":
                 print(resp['data']['reason'])
                 return
-            new_devices.append(device.Device.from_responce(device['uid'], resp['data']))
+            new_devices.append(sdevice.Device.from_responce(device['uid'], resp['data']))
         self.devices = new_devices
 
     def keep(self):
