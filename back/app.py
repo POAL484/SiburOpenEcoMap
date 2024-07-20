@@ -149,7 +149,7 @@ def get_last():
     #    values = {}
     #    for liveParam in json.loads(request.args["filter"]):
     #        values[liveParam] = data[liveParam]
-    print(u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "values": values}))
+    #print(u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "values": values}))
     return u.make_response("ok", {"ll": {"lat": c.fund.ll[request.args["uid"]][0], "lon": c.fund.ll[request.args["uid"]][1]}, "values": values})
 
 
