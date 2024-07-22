@@ -66,7 +66,7 @@ class DeviceTip(ft.Container):
             )
         self.page = page
 
-    def udpateWithNewData(self, dvc: Device):
+    def updateWithNewData(self, dvc: Device):
         self.content = ft.Column([
 
         ], spacing=2, scroll='adaptive')
