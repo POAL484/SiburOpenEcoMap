@@ -31,8 +31,9 @@ unit_for_rain_misc = "мг/л"
 
 class DeviceTip(ft.Container):
     def hideMySelf(self, e: ft.ControlEvent):
-        self.visible = False
-        self.update()
+        if self.opacity == 0:
+            self.visible = False
+            self.update()
 
     def __init__(self, width: int, height: int, dvc: Device, page: ft.Page):
         super().__init__(width=width, height=height, bgcolor="#cc555555", border_radius=10, animate_opacity=300, on_animation_end=lambda e: self.hideMySelf(e))
@@ -67,32 +68,35 @@ class DeviceTip(ft.Container):
         self.page = page
 
     def updateWithNewData(self, dvc: Device):
-        self.content = ft.Column([
-
-        ], spacing=2, scroll='adaptive')
-        self.content.controls.append(ft.ElevatedButton(
+        self.content.controls[0] = (ft.ElevatedButton(
             "Подробнее >", on_click=lambda e: self.page.go(f"/device/{dvc.uid}"),
             bgcolor="#00000000"
         ))
+        key = 1
         for paramName in dvc.live.keys():
             if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
-            self.content.controls.append(
+            self.content.controls[key] = (
                 ValueWithUnit(paramName, dvc.live[paramName], units_for_live[paramName] if paramName in units_for_live.keys() else unit_for_live_misc, 'live')
             )
-        self.content.controls.append(
+            key += 1
+        self.content.controls[key] = (
             ft.Container(bgcolor="white", width=self.width, height=2)
         )
+        key += 1
         for paramName in dvc.lake.keys():
             if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
-            self.content.controls.append(
+            self.content.controls[key] = (
                 ValueWithUnit(paramName, dvc.lake[paramName], units_for_lake[paramName] if paramName in units_for_lake.keys() else unit_for_lake_misc, 'lake')
             )
-        self.content.controls.append(
+            key += 1
+        self.content.controls[key] = (
             ft.Container(bgcolor="white", width=self.width, height=2)
         )
+        key += 1
         for paramName in dvc.rain.keys():
             if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
-            self.content.controls.append(
+            self.content.controls[key] = (
                 ValueWithUnit(paramName, dvc.rain[paramName], units_for_rain[paramName] if paramName in units_for_rain.keys() else unit_for_rain_misc, 'rain')
             )
-        self.update()
+            key += 1
+        self.page.update()

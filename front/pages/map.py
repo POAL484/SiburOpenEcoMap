@@ -25,6 +25,9 @@ def page_map(page: ft.Page):
 
     def filter_changed():
         map.refilter(filter_.filter)
+        stck.controls = [stck.controls[0],]
+        stck.controls += map.tips
+        stck.update()
 
     def handle_hover(e: ft.HoverEvent, an: Animal):
         if an.device_tip.clicked: return
@@ -65,11 +68,12 @@ def page_map(page: ft.Page):
         ft.Container(ft.Row([ft.Image(images_links['bunny'], width=hgrid.calc_grid(1, h)/1.4, height=hgrid.calc_grid(1, h)/1.4), ft.Text(str(map.count['bunny']), size=hgrid.calc_grid(1, h)/1.8)]), width=wgrid1.calc_grid(1, w), height=hgrid.calc_grid(1, h)),
         ft.Container(ft.Row([ft.Image(images_links['bear'], width=hgrid.calc_grid(1, h)/1.4, height=hgrid.calc_grid(1, h)/1.4),  ft.Text(str(map.count['bear']), size=hgrid.calc_grid(1, h)/1.8)]),  width=wgrid1.calc_grid(1, w), height=hgrid.calc_grid(1, h)),
         ft.Container(ft.Row([ft.Image(images_links['deer'], width=hgrid.calc_grid(1, h)/1.4, height=hgrid.calc_grid(1, h)/1.4),  ft.Text(str(map.count['deer']), size=hgrid.calc_grid(1, h)/1.8)]),  width=wgrid1.calc_grid(1, w), height=hgrid.calc_grid(1, h)),
-        ft.Container(ft.IconButton(ft.icons.UPDATE, on_click=lambda e :map.refilter(filter_.filter)), width=wgrid1.calc_grid(1, w), height=hgrid.calc_grid(1, h)),
+        ft.Container(ft.IconButton(ft.icons.UPDATE, on_click=lambda e :filter_changed()), width=wgrid1.calc_grid(1, w), height=hgrid.calc_grid(1, h)),
         ft.Container(width=wgrid1.calc_grid(1, w), height=hgrid.calc_grid(1, h))
     ]))
+    stck = ft.Stack([map.comp] + map.tips)
     page.add(ft.Row([
-        ft.Stack([map.comp] + map.tips), filter_
+        stck, filter_
     ]))
 
 def mobile_version(page: ft.Page):
