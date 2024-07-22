@@ -42,44 +42,44 @@ class DeviceTipMobile():
 
     def __init__(self, page: ft.Page, dvc: Device):
         self.page1 = ft.AlertDialog()
-        self.page1.content = ft.Column([])
+        self.page1.content = ft.Column([], spacing=0)
         self.page1.title = ft.Text("Последние данные c датчиков")
         self.page2 = ft.AlertDialog()
-        self.page2.content = ft.Column([])
-        self.page2.title = ft.Text("Последнее исследование воды из водоема")
+        self.page2.content = ft.Column([], spacing=0)
+        self.page2.title = ft.Text("Последнее исследование воды из осадков")
         self.page3 = ft.AlertDialog()
-        self.page3.content = ft.Column([])
-        self.page3.title = ft.Text("Последнее исследование воды из осадков")
+        self.page3.content = ft.Column([], spacing=0)
+        self.page3.title = ft.Text("Последнее исследование воды из водоема")
         for paramName in dvc.live.keys():
             if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
             self.page1.content.controls.append(
                 ValueWithUnit(paramName, dvc.live[paramName], units_for_live[paramName] if paramName in units_for_live.keys() else unit_for_live_misc, 'live')
             )
-        for paramName in dvc.lake.keys():
-            if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
-            self.page2.content.controls.append(
-                ValueWithUnit(paramName, dvc.lake[paramName], units_for_lake[paramName] if paramName in units_for_lake.keys() else unit_for_lake_misc, 'lake')
-            )
         for paramName in dvc.rain.keys():
             if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
-            self.page3.content.controls.append(
+            self.page2.content.controls.append(
                 ValueWithUnit(paramName, dvc.rain[paramName], units_for_rain[paramName] if paramName in units_for_rain.keys() else unit_for_rain_misc, 'rain')
+            )
+        for paramName in dvc.lake.keys():
+            if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
+            self.page3.content.controls.append(
+                ValueWithUnit(paramName, dvc.lake[paramName], units_for_lake[paramName] if paramName in units_for_lake.keys() else unit_for_lake_misc, 'lake')
             )
         self.page1.actions=[
             ft.TextButton(">", on_click=lambda e: self.toPage(1, 2)),
             ft.TextButton("Подробнее", on_click=lambda e: self.closeAndGo(1)),
-            ft.TextButton("Закрть", on_click=lambda e: self.selfClose(1))
+            ft.TextButton("Закрыть", on_click=lambda e: self.selfClose(1))
         ]
         self.page2.actions=[
             ft.TextButton("<", on_click=lambda e: self.toPage(2, 1)),
             ft.TextButton(">", on_click=lambda e: self.toPage(2, 3)),
             ft.TextButton("Подробнее", on_click=lambda e: self.closeAndGo(2)),
-            ft.TextButton("Закрть", on_click=lambda e: self.selfClose(2))
+            ft.TextButton("Закрыть", on_click=lambda e: self.selfClose(2))
         ]
         self.page3.actions=[
             ft.TextButton("<", on_click=lambda e: self.toPage(3, 2)),
             ft.TextButton("Подробнее", on_click=lambda e: self.closeAndGo(3)),
-            ft.TextButton("Закрть", on_click=lambda e: self.selfClose(3))
+            ft.TextButton("Закрыть", on_click=lambda e: self.selfClose(3))
         ]
         self.page = page
         self.dvc = dvc

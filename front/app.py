@@ -31,6 +31,8 @@ def main(page: ft.Page):
 
     page.storage = storage
 
+    page.theme_mode = ft.ThemeMode.DARK
+
     page.on_route_change = router
 
     page.go("/")

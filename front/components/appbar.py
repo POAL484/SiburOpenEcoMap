@@ -30,8 +30,8 @@ class SiburAppBar(ft.Container):
             return max(
                 self.grid.calc_grid(3, w)*.26,
                 min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "KAPTA"), self.maxFontSize),
-                min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "ЗАВОДЫ СИБУРА"), self.maxFontSize),
-                min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "API"), self.maxFontSize)
+                min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "API"), self.maxFontSize),
+                min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "ССЫЛКИ"), self.maxFontSize)
             ) + 45
         else:
             return ((w/3)*.26) + 45
@@ -46,8 +46,8 @@ class SiburAppBar(ft.Container):
                 ft.Column([
                     ft.Container(ft.Image("https://i.ibb.co/ky7MyMc/siburok.png", width=w/1.75, height=(w/1.75)*0.26), alignment=ft.alignment.Alignment(0, 0), on_click=lambda e: self.page.go("/")),
                     ft.Container(ft.Text("KAPTA", size=(min(self.page.u.calculateFont(font, w/1.75, "KAPTA"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), alignment=ft.alignment.Alignment(0, 0), width=w, on_click=lambda e: self.page.go("/map")),
-                    ft.Container(ft.Text("ЗАВОДЫ СИБУРА", size=(min(self.page.u.calculateFont(font, w/1.75, "ЗАВОДЫ СИБУРА"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), alignment=ft.alignment.Alignment(0, 0), width=w, on_click=lambda e: self.page.go("/sibur")),
                     ft.Container(ft.Text("API", size=(min(self.page.u.calculateFont(font, w/1.75, "API"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), alignment=ft.alignment.Alignment(0, 0), width=w, on_click=lambda e: self.page.go("/api")),
+                    ft.Container(ft.Text("ССЫЛКИ", size=(min(self.page.u.calculateFont(font, w/1.75, "ССЫЛКИ"), self.maxFontSize)), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True, text_align=ft.TextAlign.CENTER), alignment=ft.alignment.Alignment(0, 0), width=w, on_click=lambda e: self.page.go("/links")),
                 ], ft.MainAxisAlignment.CENTER)
             ), actions=[ft.Container(width=0, height=0)]
         )
@@ -58,9 +58,9 @@ class SiburAppBar(ft.Container):
                     ft.Container(width=self.grid.calc_grid(2, w)),
                     ft.Container(ft.Text("KAPTA", size=min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "KAPTA"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w), on_click=lambda e: self.page.go("/map")),
                     ft.Container(width=self.grid.calc_grid(2, w)),
-                    ft.Container(ft.Text("ЗАВОДЫ СИБУРА", size=min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "ЗАВОДЫ СИБУРА"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w), on_click=lambda e: self.page.go("/sibur")),
-                    ft.Container(width=self.grid.calc_grid(2, w)),
                     ft.Container(ft.Text("API", size=min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "API"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w), on_click=lambda e: self.page.go("/api")),
+                    ft.Container(width=self.grid.calc_grid(2, w)),
+                    ft.Container(ft.Text("ССЫЛКИ", size=min(self.page.u.calculateFont(font, self.grid.calc_grid(3, w), "ССЫЛКИ"), self.maxFontSize), font_family="Segoe UI", weight=ft.FontWeight.W_900, italic=True), width=self.grid.calc_grid(3, w), on_click=lambda e: self.page.go("/links")),
                     ft.Container(width=self.grid.calc_grid(1, w))
                 ]), 
                 ft.Container(bgcolor="white", height=2, width=w)])
