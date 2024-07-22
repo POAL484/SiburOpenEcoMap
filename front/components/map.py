@@ -11,7 +11,9 @@ SIBUR_UIDS = {
 }
 
 class SiburMap:
-    def __init__(self, page: ft.Page, width: int, height: int):
+    def __init__(self, page: ft.Page, width: int, height: int, handle_hover: callable, handle_click: callable):
+        self.handle_hover = handle_hover
+        self.handle_click = handle_click
         self.map = map.Map(
             [
                 map.TileLayer(
@@ -42,17 +44,22 @@ class SiburMap:
         self.devices_layer = map.MarkerLayer([])
         self.count = {"bunny": 0, "bear": 0, "deer": 0}
         for dvc in page.storage.devices:
-            self.devices_layer.markers.append(page.c.Animal(page, dvc))
+            self.devices_layer.markers.append(page.c.Animal(page, dvc, handle_hover, handle_click))
             self.count[dvc.pdkClass._class] += 1
         self.map.layers.append(self.devices_layer)
         #self.map.update()
         self.comp = ft.Container(self.map, width=width, height=height, border_radius=10)
         self.page = page
+        self.tips = []
+        for an in self.devices_layer.markers:
+            an.device_tip.width = width//4
+            an.device_tip.height = height
+            self.tips.append(an.device_tip)
 
     def refilter(self, filter: str):
         dvcs = []
         for dvc in self.page.storage.devices:
-            dvcs.append(self.page.c.Animal(self.page, dvc))
+            dvcs.append(self.page.c.Animal(self.page, dvc, self.handle_hover, self.handle_click))
             if filter['sib'] == "sib":
                 if not dvc.uid in SIBUR_UIDS.values():
                     dvcs.pop()
@@ -65,4 +72,9 @@ class SiburMap:
                 dvcs.pop()
                 continue
         self.devices_layer.markers = dvcs
+        self.tips = []
+        for an in self.devices_layer.markers:
+            an.device_tip.width = self.comp.width//4
+            an.device_tip.height = self.comp.height
+            self.tips.append(an.device_tip)
         self.map.update()

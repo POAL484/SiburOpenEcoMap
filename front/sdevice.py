@@ -62,6 +62,9 @@ class Device:
         self.timestamp_live = timestamp_live
         self.timestamp_lake = timestamp_lake
         self.timestamp_rain = timestamp_rain
+        self.live = last_vals['live']
+        self.lake = last_vals['lake']
+        self.rain = last_vals['rain']
 
     @classmethod
     def from_responce(self, uid: str, resp: dict):

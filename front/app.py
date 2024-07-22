@@ -35,4 +35,4 @@ def main(page: ft.Page):
 
     page.go("/")
 
-ft.app(main, port=80, view=None)
+ft.app(main, host="0.0.0.0", port=80, view=ft.WEB_BROWSER, assets_dir="assets")

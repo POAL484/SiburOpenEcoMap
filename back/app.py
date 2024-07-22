@@ -56,6 +56,7 @@ resp:
 """
 @app.route("/devicelive/<string:uid>/<string:params>")
 def devicelive(uid: str, params: str):
+    print(params)
     if not uid: return "empty uid"
     if not params: return "empty param"
     stoken_json = app.db.devices.find_one({"uid": uid})
