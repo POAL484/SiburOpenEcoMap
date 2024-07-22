@@ -72,9 +72,6 @@ class SiburMap:
                 dvcs.pop()
                 continue
         self.devices_layer.markers = dvcs
-        self.tips = []
         for an in self.devices_layer.markers:
-            an.device_tip.width = self.comp.width//4
-            an.device_tip.height = self.comp.height
-            self.tips.append(an.device_tip)
+            an.device_tip.updateWithNewData(an.dvc)
         self.map.update()

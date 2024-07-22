@@ -64,3 +64,35 @@ class DeviceTip(ft.Container):
             self.content.controls.append(
                 ValueWithUnit(paramName, dvc.rain[paramName], units_for_rain[paramName] if paramName in units_for_rain.keys() else unit_for_rain_misc, 'rain')
             )
+        self.page = page
+
+    def udpateWithNewData(self, dvc: Device):
+        self.content = ft.Column([
+
+        ], spacing=2, scroll='adaptive')
+        self.content.controls.append(ft.ElevatedButton(
+            "Подробнее >", on_click=lambda e: self.page.go(f"/device/{dvc.uid}"),
+            bgcolor="#00000000"
+        ))
+        for paramName in dvc.live.keys():
+            if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
+            self.content.controls.append(
+                ValueWithUnit(paramName, dvc.live[paramName], units_for_live[paramName] if paramName in units_for_live.keys() else unit_for_live_misc, 'live')
+            )
+        self.content.controls.append(
+            ft.Container(bgcolor="white", width=self.width, height=2)
+        )
+        for paramName in dvc.lake.keys():
+            if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
+            self.content.controls.append(
+                ValueWithUnit(paramName, dvc.lake[paramName], units_for_lake[paramName] if paramName in units_for_lake.keys() else unit_for_lake_misc, 'lake')
+            )
+        self.content.controls.append(
+            ft.Container(bgcolor="white", width=self.width, height=2)
+        )
+        for paramName in dvc.rain.keys():
+            if "Speed" in paramName or paramName == "timestamp" or paramName == "timestamp_analises": continue
+            self.content.controls.append(
+                ValueWithUnit(paramName, dvc.rain[paramName], units_for_rain[paramName] if paramName in units_for_rain.keys() else unit_for_rain_misc, 'rain')
+            )
+        self.update()
