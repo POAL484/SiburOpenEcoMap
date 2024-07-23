@@ -116,7 +116,6 @@ Get last data for device - external api
 /get_last
 params:
     uid - UID of device - string - required
-    //filter - values to be included in the responce (json format) - list[LiveParam] - optional
 
 resp:
     status - ok or err - string <ok or err> - required
@@ -124,11 +123,10 @@ resp:
         ON ERROR:
             reason - information about error - string - required
         ON OK:
-            timestemp - timestamp of last measurement - string of datetime in format "YYYY-mm-dd HH:MM:SS" - required
             ll - latitude and longitude of device - dict{...} - required:
                 lat - latitued - float - required
                 lon - longitude - float - required
-            values - dict of LiveParam measurements - dict{LiveParam: value} - required
+            values - dict with keys: live, lake and rain. - dict{'live': {LiveParams: value, timestamp: POSIXtimestamp}, 'lake': {ProbeParamLake: value, timestamp_analises: POSIXtimestamp}, 'rain': {ProbeParamRain: value, timestamp_analises: POSIXtimestamp}} - required
 
 получает на вход uid устройства и возвращает все (или указанные в фильтре) его последние значения
 """
@@ -283,8 +281,6 @@ params:
     timestamp_taken_end - time filter for taken timestamp (fixed when probe taken from device), maximium time value - string of datetime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
     timestamp_analises_start - time filter for analises timestamp (fixed when analises end), minimium time value - string of datatime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
     timestamp_analises_end - time filter for analises timestamp (fixed when analises end), maximium time value - string of datetime in format "YYYY-mm-dd HH:MM:SS" OR float timestamp in POSIX format - optional
-    //condition - condition filter, for LiveParam - string of condition in format "<LiveParam or int>< < or > or >= or <= or = or != or == ><LiveParam or int> - optional
-    //filter - values to be included in the response (json format) - list[LiveParam] - optional
     probe_type - type of this probe - string of ProbeType - optional
     limit - limit of values, to be included on one page, max 250 - int - optional - default value: 25
     page - number of page - int - optional - default value: 1
