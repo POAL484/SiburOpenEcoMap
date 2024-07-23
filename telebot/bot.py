@@ -33,12 +33,12 @@ class SiburOpenEcoMap(AsyncTeleBot):
         self.loop = asyncio.get_running_loop()
         await self.polling(True)
 
-    async def check_access(self, msg: tb.Message, access_level: float):
+    async def check_access(self, msg: tb.Message, access_level: float, no_message: bool = False):
         if not str(msg.from_user.id) in self.roles.keys():
-            await b.send_message(msg.chat.id, "Доступ запрещен")
+            if not no_message: await b.send_message(msg.chat.id, "Доступ запрещен")
             return False
         if not self.roles[str(msg.from_user.id)]["role"] >= access_level:
-            await b.send_message(msg.chat.id, "Доступ запрещен")
+            if not no_message: await b.send_message(msg.chat.id, "Доступ запрещен")
             return False
         return True
 
@@ -89,10 +89,11 @@ async def default_user_start(msg: tb.Message):
         f"Уведомления o нарушении ПДК {'🔔✔' if b.notifications[str(msg.from_user.id)]['notification'] else '🔔❌'}",
         callback_data=f"toggle_notification.{msg.from_user.id}"
     ))
+    await b.send_message(msg.chat.id, "Привет! Телеграм бот для простых пользователей еще находится в разработке, но вы можете посетить наш сайт: http://siburok.ru")
 
 @b.message_handler(commands=["start", "main"])
 async def c_start_main(msg: tb.Message):
-    if not await b.check_access(msg, 1):
+    if not await b.check_access(msg, 1, no_message=True):
         await default_user_start(msg)
         return
     if len(msg.text.split()) == 2:
