@@ -38,7 +38,6 @@ class DeviceTip(ft.Container):
     def __init__(self, width: int, height: int, dvc: Device, page: ft.Page):
         super().__init__(width=width, height=height, bgcolor="#cc555555", border_radius=10, animate_opacity=300, on_animation_end=lambda e: self.hideMySelf(e))
         self.content = ft.Column([
-
         ], spacing=2, scroll='adaptive')
         self.content.controls.append(ft.ElevatedButton(
             "Подробнее >", on_click=lambda e: page.go(f"/device/{dvc.uid}"),

@@ -5,3 +5,5 @@ from .animal import *
 from .filter import *
 from .device_tip import *
 from .device_tip_mobile import *
+from .block import *
+from .link_block import *

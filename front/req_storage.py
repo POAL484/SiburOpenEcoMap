@@ -6,6 +6,7 @@ import sdevice
 class Storage:
     def __init__(self):
         self.devices = []
+        self.count = {"bunny": 0, "bear": 0, "deer": 0}
     
     def fetch(self):
         new_devices = []
@@ -14,6 +15,7 @@ class Storage:
             print(resp['data']['reason'])
         devices = resp['data']['values']
         #print(devices)
+        count = {"bunny": 0, "bear": 0, "deer": 0}
         for device in devices:
             resp = req.get("http://siburok.ru:1883/get_last",
                            params={"uid": device['uid']}).json()
@@ -23,6 +25,8 @@ class Storage:
                 return
             #print(resp['data'])
             new_devices.append(sdevice.Device.from_responce(device['uid'], resp['data']))
+            count[new_devices[-1].pdkClass._class] += 1
+        self.count = count
         self.devices = new_devices
 
     def keep(self):
